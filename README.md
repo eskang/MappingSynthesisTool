@@ -37,6 +37,6 @@ The main entry functions for the tool is located in "/src/synthesis/Synthesizer.
 
 ## Contact
 
-Please send any questions or comments to Eunsuk Kang (eunsuk.kang@berkeley.edu).
+Please send any questions or comments to Eunsuk Kang (eskang@cmu.edu).
 
 
