@@ -1,4 +1,4 @@
-# MappingSynthesis
+# MappingSynthesisTool
 This repository contains the source code for a prototype implementation of the Mapping
 Synthesis tool, which takes (1) a pair of event-based behavioral
 models (one depicting a high-level design and another a low-level
