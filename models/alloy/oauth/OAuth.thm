@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<alloy>
+
+<view nodetheme="Martha" edgetheme="Martha" hidePrivate="no">
+
+<projection> <type name="HTTP/Step"/> </projection>
+
+<defaultnode hideunconnected="yes"/>
+
+<defaultedge/>
+
+<node>
+   <type name="AccessToken"/>
+   <type name="Alice"/>
+   <type name="AliceBrowser"/>
+   <type name="AliceRes"/>
+   <type name="AuthCode"/>
+   <type name="AuthHTTPServer"/>
+   <type name="authorize"/>
+   <type name="AuthServer"/>
+   <type name="Client"/>
+   <type name="ClientServer"/>
+   <type name="code_Alice"/>
+   <type name="code_Eve"/>
+   <type name="cred_Alice"/>
+   <type name="cred_Eve"/>
+   <type name="Eve"/>
+   <type name="EveRes"/>
+   <type name="EvilServer"/>
+   <type name="forward"/>
+   <type name="ForwardToMyApp"/>
+   <type name="getAccessToken"/>
+   <type name="Google"/>
+   <type name="HostEvil"/>
+   <type name="HostGoogle"/>
+   <type name="HostMyApp"/>
+   <type name="HTML1"/>
+   <type name="HTML2"/>
+   <type name="HTML3"/>
+   <type name="HTML4"/>
+   <type name="HTML5"/>
+   <type name="id_Alice"/>
+   <type name="id_Eve"/>
+   <type name="initiate"/>
+   <type name="Int"/>
+   <type name="MyApp"/>
+   <type name="NONCE"/>
+   <type name="NONCE2"/>
+   <type name="NONCE3"/>
+   <type name="OAuthID"/>
+   <type name="ORIGIN_ATTACKER"/>
+   <type name="ORIGIN_GOOGLE"/>
+   <type name="ORIGIN_MYAPP"/>
+   <type name="OtherOp"/>
+   <type name="path_authorize"/>
+   <type name="path_evilPage"/>
+   <type name="path_forward"/>
+   <type name="path_getAccessToken"/>
+   <type name="path_initiate"/>
+   <type name="Resource"/>
+   <type name="Session"/>
+   <type name="session_X"/>
+   <type name="session_Y"/>
+   <type name="String"/>
+   <type name="Token"/>
+   <type name="token_Alice"/>
+   <type name="token_Eve"/>
+   <type name="univ"/>
+   <type name="UserAgent"/>
+   <type name="UserCred"/>
+   <type name="HTTP/Browser"/>
+   <type name="HTTP/Data"/>
+   <type name="HTTP/Endpoint"/>
+   <type name="HTTP/Host"/>
+   <type name="HTTP/HTML"/>
+   <type name="HTTP/INVALID"/>
+   <type name="HTTP/IP"/>
+   <type name="HTTP/Media"/>
+   <type name="HTTP/Module"/>
+   <type name="HTTP/OK"/>
+   <type name="HTTP/Origin"/>
+   <type name="HTTP/Path"/>
+   <type name="HTTP/ProcHTTP"/>
+   <type name="HTTP/ProcHTTPS"/>
+   <type name="HTTP/REDIRECT"/>
+   <type name="HTTP/Server"/>
+   <type name="HTTP/StatusCode"/>
+   <type name="HTTP/Step"/>
+   <type name="HTTP/WebResource"/>
+   <type name="seq/Int"/>
+   <set name="$myApp_codes_e&apos;" type="HTTP/Event"/>
+   <set name="$myApp_codes_l" type="forward"/>
+   <set name="$myApp_sessions_e&apos;" type="initiate"/>
+   <set name="$myApp_tokens_e&apos;" type="HTTP/Event"/>
+   <set name="$myApp_tokens_l" type="getAccessToken"/>
+   <set name="$OAuthModules" type="HTTP/Proc"/>
+   <set name="$oauthProperty_e" type="HTTP/Event"/>
+   <set name="$oauthProperty_id" type="Session"/>
+   <set name="$port_auth_server" type="HTTP/Event"/>
+   <set name="$port_client" type="HTTP/Event"/>
+   <set name="$Trusted" type="HTTP/Proc"/>
+   <set name="First" type="HTTP/SO/Ord"/>
+   <set name="Next" type="HTTP/SO/Ord"/>
+   <set name="HTTP/RedirectReq" type="HTTP/Event"/>
+   <set name="HTTP/UserReq" type="HTTP/Event"/>
+</node>
+
+<node numberatoms="no">
+   <type name="HTTP/DataflowLabel"/>
+   <type name="HTTP/Port"/>
+</node>
+
+<node showlabel="no">
+   <set name="$OAuthData" type="HTTP/Data"/>
+   <set name="$OAuthLabel" type="HTTP/Event"/>
+   <set name="HTTP/Content" type="HTTP/Data"/>
+   <set name="HTTP/Cookie" type="HTTP/Data"/>
+   <set name="HTTP/GET" type="HTTP/Event"/>
+   <set name="HTTP/Header" type="HTTP/Data"/>
+   <set name="HTTP/HTTPReq" type="HTTP/Event"/>
+   <set name="HTTP/Payload" type="HTTP/Data"/>
+   <set name="HTTP/POST" type="HTTP/Event"/>
+   <set name="HTTP/PUT" type="HTTP/Event"/>
+   <set name="HTTP/Query" type="HTTP/Data"/>
+   <set name="HTTP/SetCookie" type="HTTP/Data"/>
+   <set name="HTTP/Tag" type="HTTP/Data"/>
+</node>
+
+<node visible="no">
+   <type name="HTTP/Protocol"/>
+   <type name="HTTP/EO/Ord"/>
+   <type name="HTTP/SO/Ord"/>
+</node>
+
+<node visible="no" color="Gray">
+   <type name="HTTP/Proc"/>
+</node>
+
+<node visible="no" shape="Ellipse" color="Green" label="Event">
+   <type name="HTTP/Event"/>
+</node>
+
+<node visible="yes">
+   <set name="$reachable" type="HTTP/Proc"/>
+</node>
+
+<node visible="yes" showlabel="no" color="Green">
+   <set name="e" type="HTTP/Event"/>
+</node>
+
+<edge attribute="no">
+   <relation name="body"> <type name="HTTP/Event"/> <type name="HTTP/Data"/> </relation>
+</edge>
+
+<edge style="Dotted" attribute="no">
+   <relation name="$composedWith"> <type name="HTTP/Proc"/> <type name="HTTP/Proc"/> </relation>
+</edge>
+
+<edge visible="no">
+   <relation name="$alpha"> <type name="HTTP/Proc"/> <type name="HTTP/Event"/> </relation>
+   <relation name="$knows"> <type name="HTTP/Proc"/> <type name="HTTP/Data"/> <type name="HTTP/Event"/> </relation>
+   <relation name="$receiverAlpha"> <type name="HTTP/Proc"/> <type name="HTTP/Event"/> </relation>
+   <relation name="$senderAlpha"> <type name="HTTP/Proc"/> <type name="HTTP/Event"/> </relation>
+   <relation name="codes"> <type name="AuthServer"/> <type name="UserCred"/> <type name="AuthCode"/> </relation>
+   <relation name="content"> <type name="HTTP/WebResource"/> <type name="HTTP/Data"/> </relation>
+   <relation name="creds"> <type name="AuthServer"/> <type name="OAuthID"/> <type name="UserCred"/> </relation>
+   <relation name="owner"> <type name="AuthServer"/> <type name="Resource"/> <type name="OAuthID"/> </relation>
+   <relation name="resACL"> <type name="AuthServer"/> <type name="Resource"/> <type name="AccessToken"/> </relation>
+   <relation name="tokens"> <type name="AuthServer"/> <type name="AuthCode"/> <type name="AccessToken"/> </relation>
+</edge>
+
+<edge visible="no" attribute="no">
+   <relation name="$procs"> <type name="HTTP/Event"/> <type name="HTTP/Proc"/> </relation>
+   <relation name="owns"> <type name="HTTP/Proc"/> <type name="HTTP/Data"/> </relation>
+   <relation name="port"> <type name="HTTP/Origin"/> <type name="HTTP/Port"/> </relation>
+   <relation name="protocol"> <type name="HTTP/Origin"/> <type name="HTTP/Protocol"/> </relation>
+   <relation name="receiver"> <type name="HTTP/Event"/> <type name="HTTP/Proc"/> </relation>
+</edge>
+
+<edge visible="no" attribute="yes">
+   <relation name="$learns"> <type name="HTTP/Proc"/> <type name="HTTP/Data"/> </relation>
+   <relation name="addr"> <type name="HTTP/Endpoint"/> <type name="HTTP/IP"/> </relation>
+   <relation name="args"> <type name="HTTP/Event"/> <type name="HTTP/Data"/> </relation>
+   <relation name="cred"> <type name="UserAgent"/> <type name="UserCred"/> </relation>
+   <relation name="host"> <type name="HTTP/Origin"/> <type name="HTTP/IP"/> </relation>
+   <relation name="host"> <type name="HTTP/Server"/> <type name="HTTP/IP"/> </relation>
+   <relation name="id"> <type name="UserAgent"/> <type name="OAuthID"/> </relation>
+   <relation name="origin"> <type name="HTTP/Data"/> <type name="HTTP/Origin"/> </relation>
+   <relation name="resp_code"> <type name="HTTP/Event"/> <type name="HTTP/StatusCode"/> </relation>
+   <relation name="rets"> <type name="HTTP/Event"/> <type name="HTTP/Data"/> </relation>
+   <relation name="set_origin"> <type name="HTTP/Data"/> <type name="HTTP/Origin"/> </relation>
+   <relation name="tags"> <type name="HTTP/HTML"/> <type name="HTTP/Data"/> </relation>
+   <relation name="trigger"> <type name="HTTP/Event"/> <type name="HTTP/Event"/> </relation>
+</edge>
+
+</view>
+
+</alloy>
