@@ -364,21 +364,29 @@ pred userConstraint {
 		(r.resp_set_cookie + r.resp_resource.content + r.resp_redirectTo.(query + query2)) & (OAuthData + Session) in o.rets
 */
 	all i : initiate | let r = i { 
+		r in GET
+		r.url_path = path_initiate
+		// sessions are stored as cookies	
 		r.resp_set_cookie = i.session
 		i.session in SetCookie
-//		no r.resp_resource.content 
-//		r.resp_redirectTo.origin = ORIGIN_GOOGLE
 	}
-
-	all a : authorize | let r = a {		
-		r.(resp_redirectTo_query + resp_redirectTo_query2) & AuthCode = a.code
+	all a : authorize | let r = a {
+		r.url_path = path_authorize	
+		r in POST
 		r.resp_redirectTo_origin = ORIGIN_MYAPP
 		some r.receiver & AuthHTTPServer
 	}
-
 	all f : forward | let r = f {
-		f.session in r.cookie & Cookie	
-//		no r.resp_redirectTo
+		r.url_path = path_forward	
+		r in POST
+	}
+	all g : getAccessToken | let r = g {
+		r.url_path = path_getAccessToken
+		r in GET
+		// code is transmitted as a query
+		r.url_query = g.code
+		// token is returned in the response body
+		r.resp_resource.content = g.token
 	}
 
 /*	

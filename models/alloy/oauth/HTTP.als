@@ -18,7 +18,6 @@ fact {
 }
 
 
-
 abstract sig Event {
 	sender, receiver : set Proc
 }
@@ -34,10 +33,7 @@ abstract sig DataflowLabel extends Event {
 	args : set Data,
 	rets : set Data
 }
-
-abstract sig Data {
-//	flds : set Data
-}
+abstract sig Data {}
 
 /**
 	* Datatypes related to HTTP requests
@@ -49,11 +45,9 @@ abstract sig WebResource {
 
 sig Content in Data {}
 abstract sig HTML extends WebResource {
-//	links : set URL,			// links that trigger other HTTP requests	
 	tags : set Tag
 }{
 	content = tags
-//	links + tags in flds
 }
 
 // HTML tags
@@ -85,6 +79,7 @@ abstract sig Origin {
 	port : lone Port
 }
 
+// No two distinct origins with the same protocol, host, port tuple
 fact OriginsAreCanonical {
 	no disj o1, o2 : Origin {
 		o1.protocol = o2.protocol
@@ -96,58 +91,27 @@ fact OriginsAreCanonical {
 /**
 	* A model of an HTTP server 
 	*/
-abstract sig Server extends Endpoint {
-	host : Host,
-//	resources : URL -> Resource	-- maps each URL to some resource
-}{
-	host = addr
 
-	all r : HTTPReq & receiver.this {
-		// only accepts requests with the same host as the server
-		r.url_origin.host = host
-		// return the cookie with the right origin
-		all c : Cookie | c in r.resp_set_cookie implies c.origin = r.url_origin
-	}
-
-	// all URLs have the same domain
-	//all u : resources.Resource | u.origin.@host = host	
-
-	// initially only has access to resources that it stores
-	//no owns & (WebResource - resources[URL])
-}
-
-
+// Network endpoint; can be either a server or a browser
 abstract sig Endpoint extends Module {
 	addr : lone IP
+}
+
+abstract sig Server extends Endpoint {
+	host : Host,
+}{
+	host = addr
 }
 
 /** 
 	* A model of a browser
 	*/
+// We will comment out behavior related to browser frames, since
+// it's not relevant to the OAuth case study
 abstract sig Browser extends Endpoint {
 	// frames that this browser currently contains
 	//	frames : Frame -> Event
 }{
-
-	all r : HTTPReq & sender.this {
-		all c :  r.cookie {
-			// Every cookie included in this request matches the origin of the request URL
-			c.origin = r.url_origin
-			// There must have been a set-cookie header received as part of a previous request
-			some r' : r.prevs & sender.this |
-				c in r'.resp_set_cookie and c.origin = c.set_origin				
-		}
-	}
-
-	all r : RedirectReq & sender.this {
-		some r' : r.prev & sender.this |
-			r' = r.trigger and
-			r.url_origin in r'.resp_redirectTo_origin and
-			r.url_path in r'.resp_redirectTo_path and
-			no r.body and 
-			r.(url_query + url_query2) in r'.(resp_redirectTo_query + resp_redirectTo_query2)
-	}
-
 /*
 	all f : Frame, o : Op |
 		f -> o in frames implies 
@@ -176,10 +140,9 @@ abstract sig Frame {
 /**
 	* HTTP request operation
 	*/
-
-
 sig HTTPReq in DataflowLabel {
-	// URL consists of a protocol, a host, an optional port, and an optional path, and a set of query data
+	// URL consists of a protocol, a host, an optional port, and an optional path, and
+	//  a set of query data
 	url_origin : Origin,
 	url_path : lone Path,
 	url_query,url_query2 : lone Query,
@@ -188,6 +151,7 @@ sig HTTPReq in DataflowLabel {
 	// response of the request
 	resp_code : lone StatusCode,
 	resp_set_cookie : lone Header,
+	// redirect headers
 	resp_redirectTo_origin : lone Origin,
 	resp_redirectTo_path : lone Path,
 	resp_redirectTo_query : lone Query,
@@ -198,33 +162,33 @@ sig HTTPReq in DataflowLabel {
 	rets = resp_set_cookie +	resp_resource.content +
 		resp_redirectTo_query + resp_redirectTo_query2
 	
-//	some sender & (Server + Browser)
-//	some receiver & Server
+	some sender & (Server + Browser)
+	some receiver & Server
 }
 
-
+// requests that are explicitly initiated by the user
 sig UserReq in HTTPReq {}{
 	sender in Browser
 }
+// requests that are redirected as a result from a previous request
 sig RedirectReq in HTTPReq {
 	trigger : HTTPReq
 }
-
 fact { 
 	no UserReq & RedirectReq
-	HTTPReq = UserReq + RedirectReq
 }
-
+// Different types of HTTP requests
 sig GET, POST, PUT in HTTPReq {}
 fact {
 	no GET & POST 
 	no POST & PUT 
 	no PUT & GET
 }
-
+// Cookies
 sig Cookie in Header {
 	origin : Origin
 }
+// SetCookie header
 sig SetCookie in Header {
 	set_origin : Origin
 }
@@ -242,4 +206,3 @@ fun WebBasicData : set univ {
 
 run { 
 } for 4
-
