@@ -407,6 +407,11 @@ pred scenario3 {
 }
 
 
+run scenario1Check { systemBehavior and partialConstraints and scenario1 } for 1 but 3 Event
+run scenario2Check { systemBehavior and partialConstraints and scenario2 } for 6 but 8 Event
+run scenario3Check { systemBehavior and partialConstraints and scenario3 } for 6 but 8 Event
+run AllScenarios { systemBehavior and partialConstraints and scenario1 and scenario2 and scenario3 } for 6 but 8 Event
+
 /**
 	* Mapping constraints
 	*/
