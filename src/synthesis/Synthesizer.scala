@@ -7,6 +7,8 @@
 package synthesis
 
 import types._
+import scala.reflect.runtime.universe
+import scala.tools.reflect.ToolBox
 import model.ModelHttp
 import model.ModelHttp2
 import model.ModelOAuth

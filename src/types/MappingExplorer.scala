@@ -4,6 +4,7 @@ import constraints.ImplConstraints
 import constraints.Impl
 import mapping.Mapping
 import writer.SpinWriter
+import writer.Logger
 import java.io._
 import scala.sys.process._
 import scala.collection.immutable.IndexedSeq.Impl
@@ -227,17 +228,18 @@ abstract class MappingExplorer {
     println("Mode: Alloy");
     if (verify) {
       val runner = new AlloyRunner(DIR_MODEL + PREFIX_GENERATED + "_alloy.als")   
-      println("Checking liveness for " + numMapping + "-th mapping");      
+      Logger.log("Verifying liveness properties for " + numMapping + "-th mapping", Logger.VERBOSE);
+      
       val sol1 = runner.run(PropMappingLive1)
       val sol2 = runner.run(PropMappingLive2)
-      if (!(sol1.satisfiable && sol2.satisfiable)) { 
-        println("Livness violated")
+      if (!(sol1.satisfiable && sol2.satisfiable)) {     
+        Logger.log("Livness violated!", Logger.VERBOSE);      
         result = LIVENESS_VIOLATED
         writeToPath(DIR_GENERATED + "restrictive/gen_mapping" + numMapping + ".out", mappingPP)             
       } else {
-        println("Livness OK")
+        Logger.log("Livness satisfied.", Logger.VERBOSE);      
         writeToPath(DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP)
-        println("Checking safety for " + numMapping + "-th mapping");     
+        Logger.log("Verifying safety properties for " + numMapping + "-th mapping", Logger.VERBOSE);     
         val sol = runner.run(PropMappingSafe)
         if (sol.satisfiable) {
           println("Safety violated")   
@@ -255,7 +257,7 @@ abstract class MappingExplorer {
     }
         
     ("/bin/cp " + DIR_MODEL + "gen_mapping_alloy.als " + DIR_GENERATED + "gen_mapping" + numMapping + ".als").!
-    println("Mapping and verification results written as gen_mapping" + numMapping + "(.als|.out)");         
+    Logger.log("Mapping and verification results written as gen_mapping" + numMapping + "(.als|.out)", Logger.VERBOSE);         
     println()
     
     numMapping += 1 
