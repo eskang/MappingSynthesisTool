@@ -8,8 +8,6 @@ package synthesis
 
 import types._
 import writer.Logger
-import scala.reflect.runtime.universe
-//import scala.tools.reflect.ToolBox
 import model.ModelHttp
 import model.ModelHttp2
 import model.ModelOAuth
@@ -21,13 +19,37 @@ object Synthesizer extends App {
 
   /**
    * Comment out below to run synthesis on different models/with different verifiers
-   */  
-  runAlloy1
+   */
+  runTest
+  //runAlloy1
   //runAlloy2
   //runSpin1
   //runSpin2
   //runBothOAuth2
 
+  def runTest = {
+    import scala.reflect.runtime.currentMirror
+    import scala.tools.reflect.ToolBox
+    import io.Source
+    
+    println(Store.numLabels)
+    val toolbox = currentMirror.mkToolBox()
+    val fileContents = Source.fromFile("test.scala").getLines.mkString("\n")
+    val tree = toolbox.parse("import types._; " + fileContents)
+    //val compiledCode = toolbox.compile(tree)
+    val e = toolbox.eval(tree)
+   
+    /*
+    val obj = compiledCode().asInstanceOf[Object]
+    val clazz = obj.getClass
+    println(clazz.getDeclaredFields())
+    */
+    
+    println(Store.numLabels)
+    println(Store.numDatatypes)
+    println("done")
+  }
+  
   // Synthesize a mapping from OAuth 2.0 to HTTP using Alloy as a verifier
   def runAlloy1 = {
     Logger.log("Initiating the synthesis process...", Logger.MINIMAL)

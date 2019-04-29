@@ -16,6 +16,14 @@ object Store {
   
   datatypes("mtype") = new BasicDatatype("mtype");
   
+  def numLabels : Int = {
+    return labels.size
+  }
+  
+  def numDatatypes : Int = {
+    return datatypes.size
+  }
+  
   def l(name: String) : Label = {
      return labels(name);   
   }
