@@ -7,6 +7,7 @@
 val AUTH_SERVER_ID = 0
 val CLIENT_SERVER_ID = 1
 val ATTACKER_SERVER_ID = 2
+
 // Type declarations
 val mtype = Store.d("mtype").asInstanceOf[BasicDatatype];
 
@@ -42,4 +43,5 @@ val httpPortB = Store.mkLabel("port_client", Map("req" -> httpReq, "resp" -> htt
   Map("req" -> "reqs[sender_id]", "resp" -> ("resps[" + CLIENT_SERVER_ID + "]")));
 val httpPortC = Store.mkLabel("port_attacker", Map("req" -> httpReq, "resp" -> httpResp), Set("resp"), ATTACKER_SERVER_ID,
   Map("req" -> "reqs[sender_id]", "resp" -> ("resps[" + ATTACKER_SERVER_ID + "]"))); 
-
+    
+ 

@@ -14,6 +14,5 @@ object SynthesizerOAuth1Spin extends MappingExplorer {
   val DIR_GENERATED = "models/spin/generated/"
   val PREFIX_GENERATED = "gen_mapping"
   val PATH_TEMPLATE = "models/spin/oauth/oauth1-to-http-template.pml"
-  val MODE = "SPIN"
-  
+  val MODE = "SPIN" 
 }

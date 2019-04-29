@@ -43,20 +43,22 @@ abstract class MappingExplorer {
   var lastResult : Int = 0
   
   def mapping: Mapping
+  /*
   def DIR_MODEL : String
   def DIR_GENERATED : String
   def PATH_TEMPLATE : String
   def PREFIX_GENERATED : String 
   def MODE : String
+  */
   private val PATH_SPIN = "/usr/local/bin/spin" 
   
   def init = { 
     mapping.genMapings();
-    Process(Seq("/bin/sh","-c","rm " + DIR_GENERATED + "*.*")).!    
-    Process(Seq("/bin/sh","-c","rm " + DIR_GENERATED + "permissive/*.*")).!     
-    Process(Seq("/bin/sh","-c","rm " + DIR_GENERATED + "restrictive/*.*")).! 
-    Process(Seq("/bin/sh","-c","rm " + DIR_GENERATED + "invalid/*.*")).!
-    Process(Seq("/bin/sh","-c","rm " + DIR_GENERATED + "valid/*.*")).! 
+    Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "*.*")).!    
+    Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "permissive/*.*")).!     
+    Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "restrictive/*.*")).! 
+    Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "invalid/*.*")).!
+    Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "valid/*.*")).! 
   }
      
   def writeAllMappings(verify:Boolean=false) = {
@@ -205,9 +207,9 @@ abstract class MappingExplorer {
   }
   
   def writeMapping(currMapping: Map[ImplConstraints, Map[String,String]], verify:Boolean = false) : Int = {
-    if (MODE == "ALLOY") {
+    if (Config.MODE == "ALLOY") {
       writeAlloyMapping(currMapping, verify)
-    } else if (MODE == "SPIN") {
+    } else if (Config.MODE == "SPIN") {
       writeSpinMapping(currMapping, verify)
     } else {
       NOT_VERIFIED
@@ -215,7 +217,7 @@ abstract class MappingExplorer {
   }
   
   def writeAlloyMapping(currMapping: Map[ImplConstraints, Map[String,String]], verify:Boolean = false) : Int = {
-    val writer = new AlloyWriter(DIR_MODEL,DIR_GENERATED,PATH_TEMPLATE,PREFIX_GENERATED)
+    val writer = new AlloyWriter(Config.DIR_MODEL,Config.DIR_GENERATED,Config.PATH_TEMPLATE,Config.PREFIX_GENERATED)
     writer.writeMapping(currMapping, 
         collection.immutable.HashMap("req." -> "", "resp." -> "resp_", 
             "redirectTo." -> "redirectTo_", "url." -> "url_"))
@@ -227,7 +229,7 @@ abstract class MappingExplorer {
     
     Logger.log("Mode: Alloy", Logger.VERBOSE);
     if (verify) {
-      val runner = new AlloyRunner(DIR_MODEL + PREFIX_GENERATED + "_alloy.als")   
+      val runner = new AlloyRunner(Config.DIR_MODEL + Config.PREFIX_GENERATED + "_alloy.als")   
       Logger.log("Verifying liveness properties for " + numMapping + "-th mapping", Logger.VERBOSE);
       
       val sol1 = runner.run(PropMappingLive1)
@@ -235,28 +237,28 @@ abstract class MappingExplorer {
       if (!(sol1.satisfiable && sol2.satisfiable)) {     
         Logger.log("Livness violated!", Logger.VERBOSE);      
         result = LIVENESS_VIOLATED
-        writeToPath(DIR_GENERATED + "restrictive/gen_mapping" + numMapping + ".out", mappingPP)             
+        writeToPath(Config.DIR_GENERATED + "restrictive/gen_mapping" + numMapping + ".out", mappingPP)             
       } else {
         Logger.log("Livness satisfied.", Logger.VERBOSE);      
-        writeToPath(DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP)
+        writeToPath(Config.DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP)
         Logger.log("Verifying safety properties for " + numMapping + "-th mapping", Logger.VERBOSE);     
         val sol = runner.run(PropMappingSafe)
         if (sol.satisfiable) {
           Logger.log("Safety violated", Logger.VERBOSE)   
           result = SAFETY_VIOLATED
-          writeToPath(DIR_GENERATED + "invalid/gen_mapping" + numMapping + ".out", mappingPP)
+          writeToPath(Config.DIR_GENERATED + "invalid/gen_mapping" + numMapping + ".out", mappingPP)
         } else {
           Logger.log("Safety OK!", Logger.VERBOSE)  
           //if (reducing == false) 
           correctMappingFound = true
           numValidMappings += 1
           result = MAPPING_OK
-          writeToPath(DIR_GENERATED + "valid/gen_mapping" + numMapping + ".out", mappingPP)          
+          writeToPath(Config.DIR_GENERATED + "valid/gen_mapping" + numMapping + ".out", mappingPP)          
         }
       }
     }
         
-    ("/bin/cp " + DIR_MODEL + "gen_mapping_alloy.als " + DIR_GENERATED + "gen_mapping" + numMapping + ".als").!
+    ("/bin/cp " + Config.DIR_MODEL + "gen_mapping_alloy.als " + Config.DIR_GENERATED + "gen_mapping" + numMapping + ".als").!
     Logger.log("Mapping and verification results written as gen_mapping" + numMapping + "(.als|.out)", Logger.VERBOSE);         
     Logger.log("", Logger.VERBOSE)
     
@@ -265,7 +267,7 @@ abstract class MappingExplorer {
   }
     
   def writeSpinMapping(currMapping: Map[ImplConstraints, Map[String,String]], verify:Boolean = false) : Int = {    
-    val writer = new SpinWriter(DIR_MODEL,DIR_GENERATED,PATH_TEMPLATE,PREFIX_GENERATED);
+    val writer = new SpinWriter(Config.DIR_MODEL,Config.DIR_GENERATED,Config.PATH_TEMPLATE,Config.PREFIX_GENERATED);
     writer.writeMapping(currMapping)
     var result = NOT_VERIFIED
     
@@ -276,17 +278,17 @@ abstract class MappingExplorer {
         
     Logger.log("Mode: Spin", Logger.VERBOSE);   
     if (verify) {
-      (PATH_SPIN + " -a " + DIR_MODEL + PREFIX_GENERATED + "_liveness.pml").!
+      (PATH_SPIN + " -a " + Config.DIR_MODEL + Config.PREFIX_GENERATED + "_liveness.pml").!
       "/usr/bin/cc -O2 -DSAFETY -o pan pan.c".!
       Logger.log("Checking liveness for " + numMapping + "-th mapping", Logger.VERBOSE);
       val out: String = ("./pan -E " #| "util/parsepan -l --delimiter c" !!)      
       val report = mkReport(out)
       
-      writeToPath(DIR_GENERATED + "gen_mapping" + numMapping + ".out", mappingPP + out)           
+      writeToPath(Config.DIR_GENERATED + "gen_mapping" + numMapping + ".out", mappingPP + out)           
       if (report("errors") == "1") {
         Logger.log("Liveness OK!", Logger.VERBOSE)        
-        writeToPath(DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP + out)
-        (PATH_SPIN + " -a " + DIR_MODEL + PREFIX_GENERATED + "_safety.pml").!       
+        writeToPath(Config.DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP + out)
+        (PATH_SPIN + " -a " + Config.DIR_MODEL + Config.PREFIX_GENERATED + "_safety.pml").!       
         "/usr/bin/cc -O2 -DSAFETY -o pan pan.c".!
         Logger.log("Checking safety for " + numMapping + "-th mapping", Logger.VERBOSE);     
         val out2: String = ("./pan -E " #| "util/parsepan -l --delimiter c" !!)      
@@ -295,21 +297,21 @@ abstract class MappingExplorer {
         if (report2("errors") == "1") {
           Logger.log("Safety violated", Logger.VERBOSE)   
           result = SAFETY_VIOLATED
-          writeToPath(DIR_GENERATED + "invalid/gen_mapping" + numMapping + ".out", mappingPP + out2)
+          writeToPath(Config.DIR_GENERATED + "invalid/gen_mapping" + numMapping + ".out", mappingPP + out2)
         } else {
           Logger.log("Safety OK!", Logger.VERBOSE)  
           correctMappingFound = true
           result = MAPPING_OK
-          writeToPath(DIR_GENERATED + "valid/gen_mapping" + numMapping + ".out", mappingPP + out2)          
+          writeToPath(Config.DIR_GENERATED + "valid/gen_mapping" + numMapping + ".out", mappingPP + out2)          
         }        
       } else {
         Logger.log("Livness violated", Logger.VERBOSE)
         result = LIVENESS_VIOLATED
-        writeToPath(DIR_GENERATED + "restrictive/gen_mapping" + numMapping + ".out", mappingPP + out)          
+        writeToPath(Config.DIR_GENERATED + "restrictive/gen_mapping" + numMapping + ".out", mappingPP + out)          
       }
     }
     
-    ("/bin/cp " + DIR_MODEL + "gen_mapping_safety.pml " + DIR_GENERATED + "gen_mapping" + numMapping + ".pml").!
+    ("/bin/cp " + Config.DIR_MODEL + "gen_mapping_safety.pml " + Config.DIR_GENERATED + "gen_mapping" + numMapping + ".pml").!
     Logger.log("Mapping and verification results written as gen_mapping" + numMapping + "(.pml|.out)", Logger.VERBOSE);         
     Logger.log("", Logger.VERBOSE)
     

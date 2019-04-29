@@ -7,6 +7,10 @@
 package synthesis
 
 import types._
+import scala.reflect.runtime.currentMirror
+import scala.tools.reflect.ToolBox
+import io.Source
+    
 import writer.Logger
 import model.ModelHttp
 import model.ModelHttp2
@@ -16,7 +20,24 @@ import model.ModelOAuth1
 case class Mismatch(msg: String) extends Exception(msg) {}
 
 object Synthesizer extends App {
-
+  
+  if (args.length < 4) {
+    println("Usage: mappingSynthesizer model_1 model_2 partial_mapping config")
+    println("Please see README.txt for more details.")
+    System.exit(1)
+  }
+  
+  val toolbox = currentMirror.mkToolBox()
+  val modelFile1 = args(0)
+  val modelFile2 = args(1)
+  val partialMappingFile = args(2)
+  val configFile = args(3)
+  
+  parseEvalModel(modelFile1)
+  parseEvalModel(modelFile2)
+  parseEvalModel(partialMappingFile)
+  
+  
   /**
    * Comment out below to run synthesis on different models/with different verifiers
    */
@@ -27,13 +48,15 @@ object Synthesizer extends App {
   //runSpin2
   //runBothOAuth2
 
-  def runTest = {
-    import scala.reflect.runtime.currentMirror
-    import scala.tools.reflect.ToolBox
-    import io.Source
-    
+  def parseEvalModel(modelFile : String) = {      
+    val fileContents = Source.fromFile(modelFile).getLines.mkString("\n")
+    val tree = toolbox.parse("import types._; " + fileContents)
+    //val compiledCode = toolbox.compile(tree)
+    val e = toolbox.eval(tree)
+  }
+  
+  def runTest = {   
     println(Store.numLabels)
-    val toolbox = currentMirror.mkToolBox()
     val fileContents = Source.fromFile("test.scala").getLines.mkString("\n")
     val tree = toolbox.parse("import types._; " + fileContents)
     //val compiledCode = toolbox.compile(tree)
