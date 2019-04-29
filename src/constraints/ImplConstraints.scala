@@ -11,6 +11,7 @@ import types.Datatype
 import types.BasicDatatype
 import types.ComplexDatatype
 import types.Store
+import writer.Logger
 import synthesis.SynthesizerOAuthSpin
 
 object Impl { 
@@ -205,7 +206,8 @@ class ImplConstraints(val abs: Label, val conc: Label) {
    */
   def enumerateMappings : Iterator[Map[String,String]] = {
     enumerate(flatConcParams)
-    println("No. possible mappings from " + abs.name + " to " + conc.name + ": " + prevMaps.size)
+    Logger.log("Number of possible mappings from " + abs.name + " to " + conc.name + ": " + prevMaps.size, 
+        Logger.VERBOSE)
     /*prevMaps.foreach { e =>
       println(e)
     }

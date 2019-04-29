@@ -9,7 +9,7 @@ object Logger {
   val MEDIUM = 1
   val VERBOSE = 2 
   
-  var verbosity = MEDIUM
+  var verbosity = VERBOSE
   
   def setVerbosity(v : Int) = { 
     verbosity = v;

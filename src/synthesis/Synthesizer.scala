@@ -7,8 +7,9 @@
 package synthesis
 
 import types._
+import writer.Logger
 import scala.reflect.runtime.universe
-import scala.tools.reflect.ToolBox
+//import scala.tools.reflect.ToolBox
 import model.ModelHttp
 import model.ModelHttp2
 import model.ModelOAuth
@@ -29,23 +30,23 @@ object Synthesizer extends App {
 
   // Synthesize a mapping from OAuth 2.0 to HTTP using Alloy as a verifier
   def runAlloy1 = {
-    println("Initiating the synthesis process...")
+    Logger.log("Initiating the synthesis process...", Logger.MINIMAL)
     val start = System.currentTimeMillis
     // Construct the representations of the concrete and abstract models 
     ModelHttp.make
     ModelOAuth.make
     SynthesizerOAuthAlloy.init
-    println("Number of possible mappings is " + SynthesizerOAuthAlloy.numMappings)
-    println()
+    Logger.log("Number of possible mapping candidates to search is " + SynthesizerOAuthAlloy.numMappings, Logger.MINIMAL)
+    Logger.log("", Logger.MEDIUM)
     // Enumerate and verify each mapping
     //SynthesizerOAuthAlloy.writeAllMappings(true)
     //SynthesizerOAuthAlloy.writeNextAlloy(true);
     //SynthesizerOAuthAlloy.writeUpto(1, true);
     SynthesizerOAuthAlloy.findSecureMapping
     val totalTime = System.currentTimeMillis - start
-    println("Mapping exploration complete.")
-    println("Total time elapsed " + totalTime / 1000.00 + " seconds")
-    println("Total number of skipped mappings " + SynthesizerOAuthAlloy.numSkipped);
+    Logger.log("Mapping exploration complete.", Logger.MINIMAL)
+    Logger.log("Total time elapsed " + totalTime / 1000.00 + " seconds", Logger.MEDIUM)
+  //  Logger.log("Total number of skipped mappings " + SynthesizerOAuthAlloy.numSkipped, Logger.MEDIUM);
   }
 
   // Synthesize a mapping from OAuth 1.0 to HTTP using Alloy as a verifier

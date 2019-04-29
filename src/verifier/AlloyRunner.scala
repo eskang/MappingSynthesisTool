@@ -1,6 +1,7 @@
 package verifier
 
 import scala.collection.JavaConverters._
+import writer.Logger
 
 import edu.mit.csail.sdg.alloy4compiler.ast.Module
 import edu.mit.csail.sdg.alloy4.A4Reporter;
@@ -32,10 +33,10 @@ class AlloyRunner(modelPath: String) {
     options.noOverflow = true
 
     if (DEBUG) {
-      println("**********************************")
-      println("Solving a new formula...")
-      println(cmd.scope)
-      println(cmd.formula)
+      Logger.log("**********************************", Logger.VERBOSE)
+      Logger.log("Solving a new formula...", Logger.VERBOSE)
+      Logger.log(cmd.scope.toString(), Logger.VERBOSE)
+      Logger.log(cmd.formula.toString(), Logger.VERBOSE)
     }
 
     val solvingStart = System.nanoTime()
@@ -43,19 +44,19 @@ class AlloyRunner(modelPath: String) {
     val solvingTime = System.nanoTime() - solvingStart
 
     if (DEBUG) {
-      println("Solving completed: " + solvingTime / 1000000 + "ms")
-      println()
+      Logger.log("Solving completed: " + solvingTime / 1000000 + "ms", Logger.VERBOSE)
+      Logger.log("", Logger.VERBOSE)
       if (sol.satisfiable()) {
-        println("Instance found!")
-        println(sol)
+        Logger.log("Instance found!", Logger.VERBOSE)
+        Logger.log(sol.toString(), Logger.VERBOSE)
         sol.writeXML("alloy_example_output.xml");   
         // You can then visualize the XML file by calling this:
         //val viz = new VizGUI(false, "alloy_example_output.xml", null);
         //viz.loadXML("alloy_example_output.xml", true);
       } else {
-        println("Unsatisfiable!")
+        Logger.log("Unsatisfiable!", Logger.VERBOSE)
       }
-      println("**********************************")
+      Logger.log("**********************************", Logger.VERBOSE)
     }  
     sol
   }
