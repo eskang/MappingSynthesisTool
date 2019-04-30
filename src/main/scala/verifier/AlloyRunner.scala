@@ -29,7 +29,8 @@ class AlloyRunner(modelPath: String) {
     val world = CompUtil.parseEverything_fromFile(rep, null, modelPath)
     val cmd = mkCheckCmd(world, p)   
     val options = new A4Options()
-    options.solver = A4Options.SatSolver.MiniSatJNI
+//    options.solver = A4Options.SatSolver.MiniSatJNI
+    options.solver = A4Options.SatSolver.SAT4J
     options.noOverflow = true
 
     if (DEBUG) {
