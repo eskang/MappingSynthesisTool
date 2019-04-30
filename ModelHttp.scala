@@ -3,7 +3,6 @@
  *
  * Created by: Eunsuk Kang
  */
-
 val AUTH_SERVER_ID = 0
 val CLIENT_SERVER_ID = 1
 val ATTACKER_SERVER_ID = 2

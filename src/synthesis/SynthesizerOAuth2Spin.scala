@@ -13,10 +13,7 @@ import types.Store
 import mapping.OAuth2Mapping
 import mapping.OAuth2Mapping
 
-object SynthesizerOAuthSpin extends MappingExplorer {
-
-  val mapping = OAuth2Mapping.mapping;
-
+object SynthesizerOAuthSpin extends MappingExplorer(OAuth2Mapping.mapping){
   val DIR_MODEL = "models/spin/oauth/"
   val DIR_GENERATED = "models/spin/generated/"
   val PREFIX_GENERATED = "gen_mapping"

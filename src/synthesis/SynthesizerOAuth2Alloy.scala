@@ -13,10 +13,7 @@ import types.Store
 import types.Config
 import mapping.OAuth2Mapping
 
-object SynthesizerOAuthAlloy extends MappingExplorer {
-
-  val mapping = OAuth2Mapping.mapping;
-
+object SynthesizerOAuthAlloy extends MappingExplorer(OAuth2Mapping.mapping){
   def setConfig = {
     Config.DIR_MODEL = "models/alloy/oauth/"
     Config.DIR_GENERATED = "models/alloy/generated/"

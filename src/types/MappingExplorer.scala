@@ -16,7 +16,7 @@ import verifier.PropMappingLive1
 import verifier.PropMappingLive2
 
 
-abstract class MappingExplorer {
+class MappingExplorer(val mapping : Mapping) {
     
   protected val OPTIMIZE = false
   protected val MINIMIZE = false
@@ -42,7 +42,7 @@ abstract class MappingExplorer {
   
   var lastResult : Int = 0
   
-  def mapping: Mapping
+  //var mapping: Mapping
   /*
   def DIR_MODEL : String
   def DIR_GENERATED : String

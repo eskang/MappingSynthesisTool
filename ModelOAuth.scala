@@ -3,7 +3,6 @@
  *
  * Created by: Eunsuk Kang
  */
-
 val OAUTH_ID_GOOGLE = 0
 val OAUTH_ID_MYAPP = 1
 val OAUTH_ID_ALICE = 2
