@@ -39,7 +39,6 @@ object Synthesizer extends App {
   parseEvalModel(modelFile2)
   parseMapping(partialMappingFile)
   val mapping = MappingFactory.getMapping
-  println("Num mappings:" + mapping.numMappings)
   parseEvalConfig(configFile)
 
   val mappingExplorer = new MappingExplorer(mapping)
