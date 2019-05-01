@@ -25,7 +25,7 @@ object Synthesizer extends App {
 
   if (args.length < 4) {
     println("Error: Missing parameters.")
-    println("Usage: mappingSynthesizer model_1 model_2 partial_mapping config")
+    println("Usage: java -jar MappingSynthesizer.jar model_1 model_2 partial_mapping config")
     println("Please see README.txt for more details.")
     System.exit(1)
   }
@@ -41,6 +41,7 @@ object Synthesizer extends App {
   parseMapping(partialMappingFile)
   val mapping = MappingFactory.getMapping
   parseEvalConfig(configFile)
+  Logger.setVerbosity(Config.VERBOSITY)
   //Logger.log("Initialization complete.", Logger.VERBOSE)
 
   val mappingExplorer = new MappingExplorer(mapping)

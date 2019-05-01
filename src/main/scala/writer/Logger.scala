@@ -1,5 +1,5 @@
 /**
- * Logging tool output
+ * A simple logging component.
  */
 package writer
 
@@ -9,7 +9,7 @@ object Logger {
   val MEDIUM = 1
   val VERBOSE = 2 
   
-  var verbosity = VERBOSE
+  private var verbosity = VERBOSE
   
   def setVerbosity(v : Int) = { 
     verbosity = v;
