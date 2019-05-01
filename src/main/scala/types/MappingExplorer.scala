@@ -35,6 +35,7 @@ class MappingExplorer(val mapping : Mapping) {
   var numSkipped = 0 
   var relaxNumCalls = List[Int]();
   var relaxTime = List[Long]();
+  var verificationTime = List[Long]();
   var numActualMapping = 0
   var minNumCalls : Int = 0
   var minTime : Long = 0
@@ -70,22 +71,25 @@ class MappingExplorer(val mapping : Mapping) {
    
   def printStats() = {
       Logger.log("", Logger.MEDIUM)
-      Logger.log("### Statistics ###", Logger.MEDIUM)
+      Logger.log("### Statistics on the synthesis task ###", Logger.MEDIUM)
       Logger.log("Total number of mappings: " + numMappings, Logger.MEDIUM)      
       Logger.log("A correct mapping found after: " + numMapping + " iterations", Logger.MEDIUM)
       Logger.log("Total number of skipped mappings: " + numSkipped, Logger.MEDIUM);
       
       if (!relaxNumCalls.isEmpty) {
-        Logger.log("Number of candidate mappings explored: " + (numMapping - (relaxNumCalls.sum + minNumCalls)), Logger.MEDIUM)
+        //Logger.log("Number of candidate mappings explored: " + (numMapping - (relaxNumCalls.sum + minNumCalls)), Logger.MEDIUM)
         Logger.log("* Stats on generalization of invalid mapping constraitns", Logger.MEDIUM)
         Logger.log("** Total Number of verifier calls during generalization: " + relaxNumCalls.sum, Logger.MEDIUM)
         Logger.log("** Average number of verifier calls during generalization: " + relaxNumCalls.sum/relaxNumCalls.size, Logger.MEDIUM)
-        Logger.log("** Total generalization time: " + relaxTime.sum/1000.00, Logger.MEDIUM)            
-        Logger.log("** Average generalization time: " + (relaxTime.sum/relaxTime.size)/1000.00, Logger.MEDIUM)      
+        Logger.log("** Total generalization time: " + relaxTime.sum/1000.00 + "s", Logger.MEDIUM)            
+        Logger.log("** Average generalization time: " + (relaxTime.sum/relaxTime.size)/1000.00 + "s", Logger.MEDIUM)      
       }
       Logger.log("* Stats on generalization of valid mapping constraints", Logger.MEDIUM)
-      Logger.log("** Minimization time: " + minTime/1000.00, Logger.MEDIUM)            
+      Logger.log("** Minimization time: " + minTime/1000.00 + "s", Logger.MEDIUM)            
       Logger.log("** Number of verifier calls during minimization time: " + minNumCalls, Logger.MEDIUM)
+      Logger.log("Average time on verification: " + (verificationTime.sum/verificationTime.size)/1000.00 + "s", Logger.MEDIUM);
+      Logger.log("Total time on verification: " + (verificationTime.sum/1000.00) + "s", Logger.MEDIUM);
+    
       //Logger.log("** Number of valid mappings found: " + numValidMappings, Logger.MEDIUM)
   }
   
@@ -256,7 +260,7 @@ class MappingExplorer(val mapping : Mapping) {
         if (sol.satisfiable) {
           Logger.log("** Property violated: Invalid mapping!", Logger.VERBOSE)   
           result = SAFETY_VIOLATED
-          writeToPath(Config.DIR_GENERATED + "invalid/gen_mapping" + numMapping + ".out", mappingPP)
+          writeToPath(Config.DIR_GENERATED + "invalid/" + Config.PREFIX_GENERATED + numMapping + ".out", mappingPP)
         } else {
           Logger.log("** Property satisfied!", Logger.VERBOSE)  
           //if (reducing == false) 
@@ -264,14 +268,15 @@ class MappingExplorer(val mapping : Mapping) {
           numValidMappings += 1
           result = MAPPING_OK
           lastValidMapping = numMapping
-          writeToPath(Config.DIR_GENERATED + "valid/gen_mapping" + numMapping + ".out", mappingPP)          
+          writeToPath(Config.DIR_GENERATED + "valid/"+ Config.PREFIX_GENERATED + numMapping + ".out", mappingPP)          
         }
       }
     }
         
-    ("/bin/cp " + Config.DIR_MODEL + "gen_mapping_alloy.als " + Config.DIR_GENERATED + "gen_mapping" + numMapping + ".als").!
+    ("/bin/cp " + Config.DIR_MODEL + "gen_mapping_alloy.als " + Config.DIR_GENERATED + Config.PREFIX_GENERATED + numMapping + ".als").!
     val totalTime = System.currentTimeMillis - start
-    Logger.log("** Mapping constraints logged as " + Config.DIR_GENERATED + "gen_mapping" + numMapping + "(.als|.out)", Logger.VERBOSE);
+    Logger.log("** Mapping constraints logged as " + Config.DIR_GENERATED + Config.PREFIX_GENERATED + numMapping + "(.als|.out)", Logger.VERBOSE);
+    verificationTime = totalTime :: verificationTime
     Logger.log("** Verification time for this candidate: " + totalTime/1000.00 + "s", Logger.VERBOSE); 
     //Logger.log("", Logger.VERBOSE)
     
@@ -297,7 +302,7 @@ class MappingExplorer(val mapping : Mapping) {
       val out: String = ("./pan -E " #| "util/parsepan -l --delimiter c" !!)      
       val report = mkReport(out)
       
-      writeToPath(Config.DIR_GENERATED + "gen_mapping" + numMapping + ".out", mappingPP + out)           
+      writeToPath(Config.DIR_GENERATED + Config.PREFIX_GENERATED + numMapping + ".out", mappingPP + out)           
       if (report("errors") == "1") {
         Logger.log("Liveness OK!", Logger.VERBOSE)        
         writeToPath(Config.DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP + out)

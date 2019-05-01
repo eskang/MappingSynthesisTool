@@ -56,15 +56,15 @@ object Synthesizer extends App {
   Logger.log("", Logger.MINIMAL)
   
   // Enumerate and verify each mapping
-  Logger.log("### Starting the synthesis process ###", Logger.MINIMAL)
-  Logger.log("Using the Alloy Analyzer as the verifier..", Logger.VERBOSE);  
+  Logger.log("### Running the synthesis task ###", Logger.MINIMAL)
+  Logger.log("Using the Alloy Analyzer as the verifier..", Logger.MEDIUM);  
   val mappingFound = mappingExplorer.findSecureMapping
   val totalTime = System.currentTimeMillis - start
   Logger.log("### Mapping exploration complete ###", Logger.MINIMAL)
   Logger.log("", Logger.MINIMAL)
   
   Logger.log("### Synthesis task complete ###", Logger.MINIMAL)
-  Logger.log("Total time elapsed " + totalTime / 1000.00 + " seconds", Logger.MEDIUM)
+  Logger.log("Total time elapsed " + totalTime / 1000.00 + "s", Logger.MEDIUM)
 
   if (mappingFound) {
     Logger.log("Valid mapping constraint found!", Logger.MINIMAL)    
