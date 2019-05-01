@@ -10,8 +10,9 @@ import scala.reflect.runtime.currentMirror
 import scala.tools.reflect.ToolBox
 import io.Source
 
-import mapping._
+import mapping.MappingFactory
 import types._
+import scala.sys.process._
 import writer.Logger
 import model.ModelHttp
 import model.ModelHttp2
@@ -28,32 +29,50 @@ object Synthesizer extends App {
     println("Please see README.txt for more details.")
     System.exit(1)
   }
-
+  Logger.log("### Initializing the Mapping Synthesizer ###", Logger.MINIMAL)
   val toolbox = currentMirror.mkToolBox()
   val modelFile1 = args(0)
   val modelFile2 = args(1)
   val partialMappingFile = args(2)
   val configFile = args(3)
-
+  Logger.log("Parsing the input model files..", Logger.MINIMAL)
   parseEvalModel(modelFile1)
   parseEvalModel(modelFile2)
   parseMapping(partialMappingFile)
   val mapping = MappingFactory.getMapping
   parseEvalConfig(configFile)
+  //Logger.log("Initialization complete.", Logger.VERBOSE)
 
   val mappingExplorer = new MappingExplorer(mapping)
-
-  Logger.log("Initiating the synthesis process...", Logger.MINIMAL)
+  
   val start = System.currentTimeMillis
   // Construct the representations of the concrete and abstract models
-  mappingExplorer.init
-  Logger.log("Number of possible mapping candidates to search is " + mapping.numMappings, Logger.MINIMAL)
+  Logger.log("Cleaning any leftover files from previous synthesis runs..", Logger.MINIMAL)   
+  mappingExplorer.init  
+  Logger.log("Generating the space of possible mapping candidates..", Logger.VERBOSE) 
+  Logger.log("Total number of possible mapping candidates to search: " + mapping.numMappings, Logger.VERBOSE)
+  Logger.log("### Initialization complete ###", Logger.MINIMAL)
   Logger.log("", Logger.MINIMAL)
+  
   // Enumerate and verify each mapping
-  mappingExplorer.findSecureMapping
+  Logger.log("### Starting the synthesis process ###", Logger.MINIMAL)
+  Logger.log("Using the Alloy Analyzer as the verifier..", Logger.VERBOSE);  
+  val mappingFound = mappingExplorer.findSecureMapping
   val totalTime = System.currentTimeMillis - start
-  Logger.log("Mapping exploration complete.", Logger.MINIMAL)
+  Logger.log("### Mapping exploration complete ###", Logger.MINIMAL)
+  Logger.log("", Logger.MINIMAL)
+  
+  Logger.log("### Synthesis task complete ###", Logger.MINIMAL)
   Logger.log("Total time elapsed " + totalTime / 1000.00 + " seconds", Logger.MEDIUM)
+
+  if (mappingFound) {
+    Logger.log("Valid mapping constraint found!", Logger.MINIMAL)    
+    val validMappingFile = Config.DIR_GENERATED + "valid/gen_mapping" + mappingExplorer.lastValidMapping + ".out"
+    ("/bin/cp " + validMappingFile + " solution_mapping.out" ).!
+    Logger.log("Maximal, valid mapping constraint output as solution_mapping.out", Logger.MINIMAL)    
+  } else {
+    Logger.log("No valid mapping found!", Logger.MINIMAL)
+  }
 
   /**
    * Comment out below to run synthesis on different models/with different verifiers

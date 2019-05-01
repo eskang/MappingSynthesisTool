@@ -18,8 +18,8 @@ import verifier.PropMappingLive2
 
 class MappingExplorer(val mapping : Mapping) {
     
-  protected val OPTIMIZE = false
-  protected val MINIMIZE = false
+  protected val OPTIMIZE = true
+  protected val MINIMIZE = true
   protected val NOT_VERIFIED = -1
   protected val MAPPING_OK = 0 
   protected val SAFETY_VIOLATED = 1
@@ -40,6 +40,8 @@ class MappingExplorer(val mapping : Mapping) {
   var minTime : Long = 0
   var numValidMappings = 0
   
+  var lastValidMapping : Int = 0
+  
   var lastResult : Int = 0
   
   //var mapping: Mapping
@@ -55,8 +57,8 @@ class MappingExplorer(val mapping : Mapping) {
   def init = { 
     mapping.genMapings();
     Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "*.*")).!    
-    Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "permissive/*.*")).!     
-    Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "restrictive/*.*")).! 
+  //  Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "permissive/*.*")).!     
+  //  Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "restrictive/*.*")).! 
     Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "invalid/*.*")).!
     Process(Seq("/bin/sh","-c","rm " + Config.DIR_GENERATED + "valid/*.*")).! 
   }
@@ -67,20 +69,24 @@ class MappingExplorer(val mapping : Mapping) {
   }
    
   def printStats() = {
+      Logger.log("", Logger.MEDIUM)
+      Logger.log("### Statistics ###", Logger.MEDIUM)
       Logger.log("Total number of mappings: " + numMappings, Logger.MEDIUM)      
       Logger.log("A correct mapping found after: " + numMapping + " iterations", Logger.MEDIUM)
       Logger.log("Total number of skipped mappings: " + numSkipped, Logger.MEDIUM);
       
       if (!relaxNumCalls.isEmpty) {
         Logger.log("Number of candidate mappings explored: " + (numMapping - (relaxNumCalls.sum + minNumCalls)), Logger.MEDIUM)
-        Logger.log("Number of verifier calls during relaxation: " + relaxNumCalls.sum, Logger.MEDIUM)
-        Logger.log("Average of verifier calls during relaxation: " + relaxNumCalls.sum/relaxNumCalls.size, Logger.MEDIUM)
-        Logger.log("Total relaxation time: " + relaxTime.sum/1000.00, Logger.MEDIUM)            
-        Logger.log("Average relaxation time: " + (relaxTime.sum/relaxTime.size)/1000.00, Logger.MEDIUM)      
+        Logger.log("* Stats on generalization of invalid mapping constraitns", Logger.MEDIUM)
+        Logger.log("** Total Number of verifier calls during generalization: " + relaxNumCalls.sum, Logger.MEDIUM)
+        Logger.log("** Average number of verifier calls during generalization: " + relaxNumCalls.sum/relaxNumCalls.size, Logger.MEDIUM)
+        Logger.log("** Total generalization time: " + relaxTime.sum/1000.00, Logger.MEDIUM)            
+        Logger.log("** Average generalization time: " + (relaxTime.sum/relaxTime.size)/1000.00, Logger.MEDIUM)      
       }
-      Logger.log("Minimization time: " + minTime/1000.00, Logger.MEDIUM)            
-      Logger.log("Number of verifier calls during minimization time: " + minNumCalls, Logger.MEDIUM)
-      Logger.log("Number of valid mappings found: " + numValidMappings, Logger.MEDIUM)
+      Logger.log("* Stats on generalization of valid mapping constraints", Logger.MEDIUM)
+      Logger.log("** Minimization time: " + minTime/1000.00, Logger.MEDIUM)            
+      Logger.log("** Number of verifier calls during minimization time: " + minNumCalls, Logger.MEDIUM)
+      //Logger.log("** Number of valid mappings found: " + numValidMappings, Logger.MEDIUM)
   }
   
   def findSecureMapping : Boolean = {
@@ -121,15 +127,14 @@ class MappingExplorer(val mapping : Mapping) {
     
     reducing = true
     
-    Logger.log("************", Logger.VERBOSE)
-    Logger.log("Relaxing constraint set", Logger.VERBOSE)
+    Logger.log("=== Attempting to generalize invalid mapping constraint..", Logger.VERBOSE)
     
     val mappingPP = (mapping.map { case (impl, m) =>
       (impl.abs.name + " to " + impl.conc.name + "\n") +  
       //pp(m)
       m + "\n"
     } mkString)    
-    Logger.log(mappingPP, Logger.VERBOSE)
+    //Logger.log(mappingPP, Logger.VERBOSE)
     
     var currTime = (System.currentTimeMillis() - start)/1000.00
     
@@ -140,7 +145,7 @@ class MappingExplorer(val mapping : Mapping) {
           val res = writeMapping(tempMapping, true)
           count += 1;
           currTime = (System.currentTimeMillis() - start)/1000.00
-          Logger.log("Relaxation time stamp: " + currTime, Logger.VERBOSE)
+          //Logger.log("*** Generalization time: " + currTime, Logger.VERBOSE)
           if (res == MAPPING_OK && MINIMIZE) {
             minimizeMapping(tempMapping, res)
             return badConstraints.toMap
@@ -156,11 +161,11 @@ class MappingExplorer(val mapping : Mapping) {
       
     reducing = false    
     
-    Logger.log(badConstraints.toString(), Logger.VERBOSE);    
-    Logger.log("Relaxation complete in " + totalTime/1000.00, Logger.VERBOSE)
+    //Logger.log(badConstraints.toString(), Logger.VERBOSE);    
+    Logger.log("=== Generalization complete in " + totalTime/1000.00 + "s", Logger.VERBOSE)
     relaxNumCalls = count :: relaxNumCalls
     relaxTime = totalTime :: relaxTime
-    Logger.log("************", Logger.VERBOSE)     
+    //Logger.log("************", Logger.VERBOSE)     
     badConstraints.toMap;
   }  
   
@@ -186,6 +191,7 @@ class MappingExplorer(val mapping : Mapping) {
     if (!checkSkipConstraints(currMapping)) {
       val result = writeMapping(currMapping, verify)
       lastResult = result
+   
       if (OPTIMIZE && 
            (result == LIVENESS_VIOLATED 
                //|| result == SAFETY_VIOLATED
@@ -198,9 +204,10 @@ class MappingExplorer(val mapping : Mapping) {
         minimizeMapping(currMapping, result)
       }      
     } else {
-      //Logger.log("Skipping " + numMapping + "th mapping!")
+      Logger.log("", Logger.VERBOSE)
+      Logger.log("* Skipping the next mapping constraint since it is invalid!", Logger.VERBOSE)
       numSkipped += 1
-      Logger.log("SKIPPED: " + numSkipped,Logger.VERBOSE)
+      //Logger.log("SKIPPED: " + numSkipped,Logger.VERBOSE)
       lastResult = SKIPPED
     }     
     hasNext
@@ -227,40 +234,46 @@ class MappingExplorer(val mapping : Mapping) {
       pp(m)      
     } mkString
     
-    Logger.log("Mode: Alloy", Logger.VERBOSE);
+    Logger.log("", Logger.VERBOSE);
+    val start = System.currentTimeMillis
+    Logger.log("* Checking " + numMapping + "-th mapping candidate..", Logger.VERBOSE);
     if (verify) {
       val runner = new AlloyRunner(Config.DIR_MODEL + Config.PREFIX_GENERATED + "_alloy.als")   
-      Logger.log("Verifying liveness properties for " + numMapping + "-th mapping", Logger.VERBOSE);
+      //Logger.log("Verifying liveness properties for " + numMapping + "-th mapping", Logger.VERBOSE);
+      Logger.log("** Verifying the property for the candidate mapping..", Logger.VERBOSE);
       
       val sol1 = runner.run(PropMappingLive1)
       val sol2 = runner.run(PropMappingLive2)
       if (!(sol1.satisfiable && sol2.satisfiable)) {     
-        Logger.log("Livness violated!", Logger.VERBOSE);      
+        Logger.log("** Property violated: Invalid mapping!", Logger.VERBOSE);      
         result = LIVENESS_VIOLATED
-        writeToPath(Config.DIR_GENERATED + "restrictive/gen_mapping" + numMapping + ".out", mappingPP)             
+        //writeToPath(Config.DIR_GENERATED + "restrictive/gen_mapping" + numMapping + ".out", mappingPP)             
       } else {
-        Logger.log("Livness satisfied.", Logger.VERBOSE);      
-        writeToPath(Config.DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP)
-        Logger.log("Verifying safety properties for " + numMapping + "-th mapping", Logger.VERBOSE);     
+        //Logger.log("Livness satisfied.", Logger.VERBOSE);      
+        //writeToPath(Config.DIR_GENERATED + "permissive/gen_mapping" + numMapping + ".out", mappingPP)
+        //Logger.log("Verifying safety properties for " + numMapping + "-th mapping", Logger.VERBOSE);     
         val sol = runner.run(PropMappingSafe)
         if (sol.satisfiable) {
-          Logger.log("Safety violated", Logger.VERBOSE)   
+          Logger.log("** Property violated: Invalid mapping!", Logger.VERBOSE)   
           result = SAFETY_VIOLATED
           writeToPath(Config.DIR_GENERATED + "invalid/gen_mapping" + numMapping + ".out", mappingPP)
         } else {
-          Logger.log("Safety OK!", Logger.VERBOSE)  
+          Logger.log("** Property satisfied!", Logger.VERBOSE)  
           //if (reducing == false) 
           correctMappingFound = true
           numValidMappings += 1
           result = MAPPING_OK
+          lastValidMapping = numMapping
           writeToPath(Config.DIR_GENERATED + "valid/gen_mapping" + numMapping + ".out", mappingPP)          
         }
       }
     }
         
     ("/bin/cp " + Config.DIR_MODEL + "gen_mapping_alloy.als " + Config.DIR_GENERATED + "gen_mapping" + numMapping + ".als").!
-    Logger.log("Mapping and verification results written as gen_mapping" + numMapping + "(.als|.out)", Logger.VERBOSE);         
-    Logger.log("", Logger.VERBOSE)
+    val totalTime = System.currentTimeMillis - start
+    Logger.log("** Mapping constraints logged as " + Config.DIR_GENERATED + "gen_mapping" + numMapping + "(.als|.out)", Logger.VERBOSE);
+    Logger.log("** Verification time for this candidate: " + totalTime/1000.00 + "s", Logger.VERBOSE); 
+    //Logger.log("", Logger.VERBOSE)
     
     numMapping += 1 
     result
@@ -324,14 +337,14 @@ class MappingExplorer(val mapping : Mapping) {
     val start = System.currentTimeMillis
     var count = 0;
     
-    Logger.log("************", Logger.VERBOSE)
-    Logger.log("Minimizing constraint set", Logger.VERBOSE)
+    //Logger.log("************", Logger.VERBOSE)
+    Logger.log("=== Attempting to generalize valid mapping constraint..", Logger.VERBOSE)
     
     val mappingPP = (mapping.map { case (impl, m) =>
       (impl.abs.name + " to " + impl.conc.name + "\n") +  
       pp(m)
     } mkString)    
-    Logger.log(mappingPP, Logger.VERBOSE)
+    //Logger.log(mappingPP, Logger.VERBOSE)
     
     mapping.foreach { case(impl,m) =>  
       m.foreach { case (k,v) =>
@@ -340,17 +353,17 @@ class MappingExplorer(val mapping : Mapping) {
           val res = writeMapping(tempMapping, true)
           count += 1;
           val currTime = (System.currentTimeMillis() - start)/1000.00
-          Logger.log("Minimization time stamp: " + currTime, Logger.VERBOSE)
+          //Logger.log("Minimization time stamp: " + currTime, Logger.VERBOSE)
           if (res == status) newMapping = tempMapping         
         }
       }
     } 
     val totalTime = System.currentTimeMillis - start
        
-    Logger.log("Minimization complete in " + totalTime/1000.00, Logger.VERBOSE)
+    Logger.log("=== Generalization of valid mapping constraint complete in " + totalTime/1000.00 + "s", Logger.VERBOSE)
     minTime = totalTime;
     minNumCalls = count;
-    Logger.log("************", Logger.VERBOSE)     
+    //Logger.log("************", Logger.VERBOSE)     
     newMapping.toMap
   }  
         

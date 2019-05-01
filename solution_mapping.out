@@ -1,0 +1,25 @@
+forward to port_client
+http://ORIGIN_MYAPP.com/path_forward?code&$COND_FUNC(req.cookie,session)
+  cookie:session body:$UNKNOWN
+response status:OK set_cookie:_
+  resource: _
+
+authorize to port_auth_server
+http://ORIGIN_GOOGLE.com/path_authorize?userid&$UNKNOWN
+  cookie:_ body:cred
+response status:REDIRECT set_cookie:_
+  redirectTo: http://ORIGIN_MYAPP.com/path_forward?code&req.url.query2
+  resource: _
+
+initiate to port_client
+http://ORIGIN_MYAPP.com/path_initiate?_&_
+  cookie:_ body:_
+response status:OK set_cookie:session
+  resource: $COND_FUNC(resp.set_cookie,session)
+
+getAccessToken to port_auth_server
+http://ORIGIN_GOOGLE.com/path_getAccessToken?code&_
+  cookie:_ body:_
+response status:OK set_cookie:_
+  resource: token
+

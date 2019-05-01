@@ -26,6 +26,7 @@ object Impl {
 class ImplConstraints(val abs: Label, val conc: Label) {
   // constraints given by the user
   private val partialConstraints = scala.collection.mutable.Map[String,Constraint]()
+  private val conditionalConstraints = scala.collection.mutable.Map[Equal, Equal]()
   
   val fld2types = scala.collection.mutable.Map[String, Datatype]()
   private val argFields = scala.collection.mutable.Set[String]()
@@ -206,8 +207,6 @@ class ImplConstraints(val abs: Label, val conc: Label) {
    */
   def enumerateMappings : Iterator[Map[String,String]] = {
     enumerate(flatConcParams)
-    Logger.log("Number of possible mappings from " + abs.name + " to " + conc.name + ": " + prevMaps.size, 
-        Logger.VERBOSE)
     /*prevMaps.foreach { e =>
       println(e)
     }
@@ -236,7 +235,14 @@ class ImplConstraints(val abs: Label, val conc: Label) {
         partialConstraints(left) = new Equal(left, right, fld2types(left))
     }
   }
-
+  
+  def addConditionalConstraints(constraints : Map[Equal, Equal]) = {
+     constraints.foreach{ case(left, right) =>
+      if (!conditionalConstraints.contains(left))
+        conditionalConstraints(left) = right
+    }
+  }
+  
   def isGivenConstraint(s : String) : Boolean = {
     partialConstraints.contains(s)
   }

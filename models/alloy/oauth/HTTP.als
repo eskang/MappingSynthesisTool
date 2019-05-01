@@ -5,6 +5,7 @@
 module HTTP
 
 open util/ordering[Event] as EO
+/*
 open util/ordering[Step] as SO
 
 abstract sig Step {
@@ -16,6 +17,7 @@ fact {
 		s1 -> s2 in SO/next iff
 			s1.e -> s2.e in EO/next
 }
+*/
 
 
 abstract sig Event {
@@ -33,7 +35,10 @@ abstract sig DataflowLabel extends Event {
 	args : set Data,
 	rets : set Data
 }
-abstract sig Data {}
+
+abstract sig Data {
+//	flds : set Data
+}
 
 /**
 	* Datatypes related to HTTP requests
@@ -45,9 +50,11 @@ abstract sig WebResource {
 
 sig Content in Data {}
 abstract sig HTML extends WebResource {
+//	links : set URL,			// links that trigger other HTTP requests	
 	tags : set Tag
 }{
 	content = tags
+//	links + tags in flds
 }
 
 // HTML tags
@@ -66,6 +73,7 @@ abstract sig Port {}
 abstract sig Path {}
 sig Query in Data {}
 
+
 // request headers
 sig Header in Data {}
 
@@ -79,7 +87,6 @@ abstract sig Origin {
 	port : lone Port
 }
 
-// No two distinct origins with the same protocol, host, port tuple
 fact OriginsAreCanonical {
 	no disj o1, o2 : Origin {
 		o1.protocol = o2.protocol
@@ -91,23 +98,37 @@ fact OriginsAreCanonical {
 /**
 	* A model of an HTTP server 
 	*/
-
-// Network endpoint; can be either a server or a browser
-abstract sig Endpoint extends Module {
-	addr : lone IP
-}
-
 abstract sig Server extends Endpoint {
 	host : Host,
+//	resources : URL -> Resource	-- maps each URL to some resource
 }{
-	host = addr
+	host = addr	
+/*
+	// only accepts requests with the same host as the server
+	all o : this.receives[HTTPReq] {
+		o.url.origin.@host = host 
+	}
+
+	// only returns resource to which the URL is mapped to
+	all o : this.receives[HTTPReq] | {
+		o.resource in resources[o.url]
+	}
+*/
+	// all URLs have the same domain
+//	all u : resources.Resource | u.origin.@host = host	
+
+	// initially only has access to resources that it stores
+	//no owns & (WebResource - resources[URL])
+}
+
+
+abstract sig Endpoint extends Module {
+	addr : lone IP
 }
 
 /** 
 	* A model of a browser
 	*/
-// We will comment out behavior related to browser frames, since
-// it's not relevant to the OAuth case study
 abstract sig Browser extends Endpoint {
 	// frames that this browser currently contains
 	//	frames : Frame -> Event
@@ -140,9 +161,10 @@ abstract sig Frame {
 /**
 	* HTTP request operation
 	*/
+
+
 sig HTTPReq in DataflowLabel {
-	// URL consists of a protocol, a host, an optional port, and an optional path, and
-	//  a set of query data
+	// URL consists of a protocol, a host, an optional port, and an optional path, and a set of query data
 	url_origin : Origin,
 	url_path : lone Path,
 	url_query,url_query2 : lone Query,
@@ -151,7 +173,6 @@ sig HTTPReq in DataflowLabel {
 	// response of the request
 	resp_code : lone StatusCode,
 	resp_set_cookie : lone Header,
-	// redirect headers
 	resp_redirectTo_origin : lone Origin,
 	resp_redirectTo_path : lone Path,
 	resp_redirectTo_query : lone Query,
@@ -166,29 +187,28 @@ sig HTTPReq in DataflowLabel {
 	some receiver & Server
 }
 
-// requests that are explicitly initiated by the user
+
 sig UserReq in HTTPReq {}{
 	sender in Browser
 }
-// requests that are redirected as a result from a previous request
 sig RedirectReq in HTTPReq {
 	trigger : HTTPReq
 }
+
 fact { 
 	no UserReq & RedirectReq
 }
-// Different types of HTTP requests
+
 sig GET, POST, PUT in HTTPReq {}
 fact {
 	no GET & POST 
 	no POST & PUT 
 	no PUT & GET
 }
-// Cookies
+
 sig Cookie in Header {
 	origin : Origin
 }
-// SetCookie header
 sig SetCookie in Header {
 	set_origin : Origin
 }
@@ -206,3 +226,4 @@ fun WebBasicData : set univ {
 
 run { 
 } for 4
+
