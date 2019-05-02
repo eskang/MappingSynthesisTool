@@ -163,6 +163,10 @@ predicates `mappingReachability` and `mappingSafety`, respectively, in
 the Alloy model that is located in `PATH_TEMPLATE` in the
 configuration file.
 
+## Source
+
+The source code for the tool is available at https://github.com/eskang/MappingSynthesisTool
+
 ## Contact
 
 Please send any questions or feedback to Eunsuk Kang (eskang@cmu.edu).
