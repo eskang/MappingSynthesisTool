@@ -22,7 +22,7 @@ those mappings that preserve the property).
 
 ## Installation instructions
 
-The Mapping Synthesizer requires Java JDK 8 or higher. In the CAV2019
+The Mapping Synthesizer requires Java JDK 8 or higher. In the vanilla CAV2019
 VM, this package can be installed by:
 
 	sudo apt-get install openjdk-8-jre-headless
