@@ -155,7 +155,7 @@ sig OtherOp extends DataflowLabel {}{
 	some sender & AliceBrowser
 	some receiver & EvilServer
 	this not in RedirectReq 
-		implies no args & (UserCred + ReqToken + Session + NONCE)
+		implies no args & (UserCred + ReqToken + Session + Nonce)
 }
 
 -------------
@@ -196,7 +196,7 @@ pred myApp_accessTokens[e : Event, i : Session, t : AccessToken] {
 		myApp_reqTokens[e', i, e'.reqToken] 
 }
 
-abstract sig NONCE extends Data {}
+abstract sig Nonce extends Data {}
 
 // App related datatypes and 
 abstract sig Session extends Data {}
@@ -217,7 +217,7 @@ fun Trusted : set Module {
 */
 one sig AuthHTTPServer extends Server {}{
 	host = HostGoogle
-	owns in Google.@owns + NONCE
+	owns in Google.@owns + Nonce
 }
 fun port_auth_server : set HTTPReq {
 	HTTPReq & receiver.AuthHTTPServer

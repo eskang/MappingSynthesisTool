@@ -11,7 +11,7 @@ object Store {
   val labels = scala.collection.mutable.Map[String, Label]();
   val values = scala.collection.mutable.Map[String, Value]();
   private var specialValCounter = -1;   
-  private val SPECIAL_VAL_PREFIX = "NONCE"
+  val SPECIAL_VAL_PREFIX = "Nonce"
   private val specialVals = scala.collection.mutable.Map[String,String]() 
   
   datatypes("mtype") = new BasicDatatype("mtype");

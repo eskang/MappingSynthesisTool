@@ -24,7 +24,7 @@ class AlloyWriter(modelDir: String, outputDir: String, templateFile: String, out
     val specialVals = Store.specialValList
     (if (!specialVals.isEmpty) 
     //  line ("abstract sig NONCE extends Data {}") + 
-      line ("one sig " + (specialVals mkString ",") + " extends NONCE {}") else "")      
+      line ("one sig " + (specialVals mkString ",") + " extends " + Store.SPECIAL_VAL_PREFIX + " {}") else "")      
   }
     
   def mappingSuffix(i : Int) : String = {

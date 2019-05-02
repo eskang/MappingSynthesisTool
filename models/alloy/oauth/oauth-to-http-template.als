@@ -122,7 +122,7 @@ sig OtherOp extends DataflowLabel {}{
 	some sender & AliceBrowser
 	some receiver & EvilServer
 	this not in RedirectReq 
-		implies no args & (UserCred + AuthCode + Session + NONCE)
+		implies no args & (UserCred + AuthCode + Session + Nonce)
 }
 
 -------------
@@ -207,7 +207,7 @@ fun Trusted : set Module {
 */
 one sig AuthHTTPServer extends Server {}{
 	host = HostGoogle
-	owns in Google.@owns + NONCE
+	owns in Google.@owns + Nonce
 }
 fun port_auth_server : set HTTPReq {
 	HTTPReq & receiver.AuthHTTPServer
@@ -215,7 +215,7 @@ fun port_auth_server : set HTTPReq {
 
 one sig ClientServer extends Server {}{
 	host = HostMyApp
-	owns in MyApp.@owns + NONCE
+	owns in MyApp.@owns + Nonce
 }
 fun port_client : set HTTPReq {
 	HTTPReq & receiver.ClientServer
@@ -255,7 +255,7 @@ one sig HTML3 extends HTML {}
 one sig HTML4 extends HTML {}
 one sig HTML5 extends HTML {}
 
-abstract sig NONCE extends Data {}
+abstract sig Nonce extends Data {}
 
 /**
 	* Behaviors
