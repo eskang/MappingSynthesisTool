@@ -22,7 +22,7 @@ i2h.addEqualConstraints(
     "resp.redirectTo.origin" -> "none",
     "resp.redirectTo.query" -> "none",
     "resp.redirectTo.query2" -> "none",
-    "resp.resource.content" -> "$COND_FUNC(resp.set_cookie,session)",
+    //"resp.resource.content" -> "$COND_FUNC(resp.set_cookie,session)",
     "resp.set_cookie" -> "session",
     "resp.code" -> "OK"))
 
@@ -31,7 +31,6 @@ a2h.addEqualConstraints(
   Map(
     "req.url.path" -> "path_authorize",
     "req.url.query" -> "userid",
-    //"req.url.query2" -> "some",
     "req.url.origin" -> "ORIGIN_GOOGLE",
     "resp.code" -> "REDIRECT",
     "resp.set_cookie" -> "none",
@@ -55,7 +54,7 @@ f2h.addEqualConstraints(
     "resp.redirectTo.query" -> "none",
     "resp.redirectTo.query2" -> "none",
     "resp.resource.content" -> "none",
-    "req.url.query2" -> "$COND_FUNC(req.cookie,session)",
+//    "req.url.query2" -> "$COND_FUNC(req.cookie,session)",
     "resp.set_cookie" -> "none"))
 
 val g2h = new ImplConstraints(getAccessToken, authServerPort)

@@ -123,7 +123,7 @@ sig OtherOp extends DataflowLabel {}{
 	some sender & AliceBrowser
 	some receiver & EvilServer
 	this not in RedirectReq 
-		implies no args & (UserCred + AuthCode + Session + NONCE)
+		implies no args & (UserCred + AuthCode + Session + Nonce)
 }
 
 -------------
@@ -208,7 +208,7 @@ fun Trusted : set Module {
 */
 one sig AuthHTTPServer extends Server {}{
 	host = HostGoogle
-	owns in Google.@owns + NONCE
+	owns in Google.@owns + Nonce
 }
 fun port_auth_server : set HTTPReq {
 	HTTPReq & receiver.AuthHTTPServer
@@ -216,7 +216,7 @@ fun port_auth_server : set HTTPReq {
 
 one sig ClientServer extends Server {}{
 	host = HostMyApp
-	owns in MyApp.@owns + NONCE
+	owns in MyApp.@owns + Nonce
 }
 fun port_client : set HTTPReq {
 	HTTPReq & receiver.ClientServer
@@ -256,7 +256,7 @@ one sig HTML3 extends HTML {}
 one sig HTML4 extends HTML {}
 one sig HTML5 extends HTML {}
 
-abstract sig NONCE extends Data {}
+abstract sig Nonce extends Data {}
 
 /**
 	* Behaviors
@@ -477,7 +477,7 @@ pred mappingSafety {
 	behavior
 	not oauthProperty
 }
-one sig NONCE0,NONCE1 extends NONCE {}
+one sig Nonce2,Nonce0,Nonce3,Nonce1 extends Nonce {}
 
 
 
@@ -498,25 +498,10 @@ pred mappingConstraints {
     b.url_origin = ORIGIN_GOOGLE
     b.resp_redirectTo_origin = ORIGIN_MYAPP
     b.resp_redirectTo_path = path_forward
-    b.resp_redirectTo_query2 = a.body
+    b.body = a.cred
     b.url_path = path_authorize
-  }
-  // mapping from initiate to port_client
-  all a : initiate | let b = a { b in port_client
-    (b.resp_set_cookie = session_X) implies b.resp_resource.content = NONCE0
-    (b.resp_set_cookie = session_Y) implies b.resp_resource.content = NONCE1
-    no b.cookie
-    no b.url_query
-    b.resp_set_cookie = a.session
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_MYAPP
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.body
-    no b.resp_redirectTo_query2
-    b.url_path = path_initiate
-    no b.url_query2
+    (b.url_query2 = cred_Eve) implies b.url_query2 = Nonce0
+    (b.url_query2 = cred_Alice) implies b.url_query2 = Nonce1
   }
   // mapping from getAccessToken to port_auth_server
   all a : getAccessToken | let b = a { b in port_auth_server
@@ -534,6 +519,22 @@ pred mappingConstraints {
     b.url_path = path_getAccessToken
     no b.url_query2
   }
+  // mapping from initiate to port_client
+  all a : initiate | let b = a { b in port_client
+    b.resp_resource.content = a.url_query2
+    no b.cookie
+    no b.url_query
+    b.resp_set_cookie = a.session
+    b.resp_code = OK
+    no b.resp_redirectTo_query
+    b.url_origin = ORIGIN_MYAPP
+    no b.resp_redirectTo_origin
+    no b.resp_redirectTo_path
+    no b.body
+    no b.resp_redirectTo_query2
+    b.url_path = path_initiate
+    no b.url_query2
+  }
   // mapping from forward to port_client
   all a : forward | let b = a { b in port_client
     no b.resp_resource.content
@@ -545,10 +546,11 @@ pred mappingConstraints {
     b.url_origin = ORIGIN_MYAPP
     no b.resp_redirectTo_origin
     no b.resp_redirectTo_path
+    (b.cookie = session_X) implies b.body = Nonce2
+    (b.cookie = session_Y) implies b.body = Nonce3
     no b.resp_redirectTo_query2
     b.url_path = path_forward
-    (b.cookie = session_X) implies b.url_query2 = NONCE0
-    (b.cookie = session_Y) implies b.url_query2 = NONCE1
+    b.url_query2 = a.session
   }
 }
 
