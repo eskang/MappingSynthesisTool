@@ -22,13 +22,10 @@ those mappings that preserve the property).
 
 ## Installation instructions
 
-All the necessary dependencies have already been installed on the
-provided VM. However, if you wish to run the Mapping
-Synthesizer on a different machine, the following packages are
-required:
+The Mapping Synthesizer requires Java JDK 8 or higher. In the CAV2019
+VM, this package can be installed by:
 
-- Java JDK 8 or higher
-- Scala 2.12.8
+	sudo apt-get install openjdk-8-jre-headless
 
 ## Reproducing the case study results from the paper
 
