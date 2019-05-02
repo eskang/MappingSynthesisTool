@@ -22,7 +22,6 @@ i2h.addEqualConstraints(
     "resp.redirectTo.origin" -> "none",
     "resp.redirectTo.query" -> "none",
     "resp.redirectTo.query2" -> "none",
-    //"resp.resource.content" -> "$COND_FUNC(resp.set_cookie,session)",
     "resp.set_cookie" -> "session",
     "resp.code" -> "OK"))
 
@@ -54,7 +53,6 @@ f2h.addEqualConstraints(
     "resp.redirectTo.query" -> "none",
     "resp.redirectTo.query2" -> "none",
     "resp.resource.content" -> "none",
-//    "req.url.query2" -> "$COND_FUNC(req.cookie,session)",
     "resp.set_cookie" -> "none"))
 
 val g2h = new ImplConstraints(getAccessToken, authServerPort)
