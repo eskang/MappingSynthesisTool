@@ -67,10 +67,12 @@ object Synthesizer extends App {
   Logger.log("Total time elapsed " + totalTime / 1000.00 + "s", Logger.MEDIUM)
 
   if (mappingFound) {
-    Logger.log("Valid mapping constraint found!", Logger.MINIMAL)    
+    Logger.log("Valid mapping constraint found!", Logger.MINIMAL)
+    val validAlloyFile = Config.DIR_GENERATED + "gen_mapping" + mappingExplorer.lastValidMapping + ".als"   
     val validMappingFile = Config.DIR_GENERATED + "valid/gen_mapping" + mappingExplorer.lastValidMapping + ".out"
     ("/bin/cp " + validMappingFile + " solution_mapping.out" ).!
-    Logger.log("Maximal, valid mapping constraint output as solution_mapping.out", Logger.MINIMAL)    
+    ("/bin/cp " + validAlloyFile + " solution_mapping.als" ).!   
+    Logger.log("Maximal, valid mapping constraint output as solution_mapping.als", Logger.MINIMAL)    
   } else {
     Logger.log("No valid mapping found!", Logger.MINIMAL)
   }

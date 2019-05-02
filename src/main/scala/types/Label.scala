@@ -9,7 +9,7 @@ class Label(val name: String, val params: Map[String,Datatype], val rets: Set[St
     val procID: Int, val rewrites: Map[String,String]=Map())  {
   // params: optional parameters of the label
   // rets: return parameters of the label
-  
+   
   def isRet(p: String) : Boolean = {
     return rets.contains(p);  
   }

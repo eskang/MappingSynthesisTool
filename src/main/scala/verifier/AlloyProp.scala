@@ -7,7 +7,7 @@ abstract class AlloyProp {
 }
 
 object PropMappingLive1 extends AlloyProp {
-  val propName = "mappingLiveness1"
+  val propName = "mappingReachability1"
   val defaultScope = 3
   val scopes = List(("Event", 7))
   //val defaultScope = 4  
@@ -15,7 +15,7 @@ object PropMappingLive1 extends AlloyProp {
 }
 
 object PropMappingLive2 extends AlloyProp {
-  val propName = "mappingLiveness2"
+  val propName = "mappingReachability2"
   val defaultScope = 3
   val scopes = List(("Event", 7))
   //val defaultScope = 4  

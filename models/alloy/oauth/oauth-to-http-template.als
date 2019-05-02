@@ -125,18 +125,6 @@ sig OtherOp extends DataflowLabel {}{
 		implies no args & (UserCred + AuthCode + Session + NONCE)
 }
 
-// 4. Request resource
-// A request for a resource on ResServer
-/*
-abstract sig GetResource extends DataflowLabel {
-	token : AccessToken,
-	res : Resource
-}{
-	args = token
-	rets = res 
-}
-*/
-
 -------------
 
 /** 
@@ -177,15 +165,6 @@ pred myApp_tokens[e : Event, i : Session, t : AccessToken] {
 		myApp_codes[e', i, l.code] 
 }
 
-/*
-fun myApp_resources[procs : Event -> Proc, labels : Event -> Label] : Event -> Session -> Resource {
-	{ e : Event, i : Session, r : Resource |
-		some e' : e.prevs & procs.MyApp, l : e'.labels & GetResource |
-			r = l.res and
-			e' -> i -> l.token in myApp_tokens[procs, labels]
-	}
-}
-*/
 
 // App related datatypes and 
 abstract sig Session extends Data {}
@@ -209,16 +188,6 @@ sig ForwardToMyApp extends forward {
 	some sender & UserAgent 
 	some receiver & MyApp
 }
-
-/*
-abstract sig ReadResource extends DataflowLabel {
-	appID : Session,
-	res : Resource
-}{
-	args = appID 
-	rets = res
-}
-*/
 
 one sig Google extends AuthServer {}{
 	tokens = code_Alice -> token_Alice + code_Eve -> token_Eve
@@ -263,9 +232,9 @@ one sig AliceBrowser extends Browser {}{
 //one sig EveBrowser extends Browser {}{ no addr }
 
 fun alpha : Proc -> Event {
-	UserAgent -> (authorize + forward + initiate) + // + ReadResource) + 
-	Client -> (forward + getAccessToken + initiate) + // + GetResource +  + ReadResource) + 
-	AuthServer -> (authorize + getAccessToken) + // + GetResource)
+	UserAgent -> (authorize + forward + initiate) + 
+	Client -> (forward + getAccessToken + initiate) +  
+	AuthServer -> (authorize + getAccessToken) +
 	OAuthModules -> OtherOp +
 	// from HTTP
 	Browser -> HTTPReq + 
@@ -275,9 +244,6 @@ fun alpha : Proc -> Event {
 one sig path_authorize,path_initiate,path_forward,
 path_evilPage,path_getAccessToken extends Path {}
 
-//one sig URLMyApp extends URL {}{ origin = ORIGIN_MYAPP }
-//one sig URLGoogle extends URL {}{ origin = ORIGIN_GOOGLE }
-//one sig URLEvilServer extends URL {}{ origin = ORIGIN_ATTACKER }
 one sig ORIGIN_MYAPP extends Origin {}{ host = HostMyApp }
 one sig ORIGIN_GOOGLE extends Origin {}{ host = HostGoogle }
 one sig ORIGIN_ATTACKER extends Origin {}{ host = HostEvil }
@@ -288,6 +254,8 @@ one sig HTML2 extends HTML {}
 one sig HTML3 extends HTML {}
 one sig HTML4 extends HTML {}
 one sig HTML5 extends HTML {}
+
+abstract sig NONCE extends Data {}
 
 /**
 	* Behaviors
@@ -377,13 +345,6 @@ pred processBehavior_OAuth {
 		}
 	}
 
-/*
-	all e : procs.MyApp, o : ReadResource {
-		e -> o in labels implies
-			e -> o.session -> o.res in myApp_resources[procs, labels]
-	}
-*/
-
 }
 
 pred processBehavior_HTTP {
@@ -431,16 +392,6 @@ pred processBehavior_HTTP {
 */
 
 pred oauthProperty {
-/*
-	all e : Event, r : ReadResource |
-		e -> r in labels and r.res = AliceRes implies
-			Eve not in e.procs
-*/
-/*
-	all e : Event, id : Session |
-		myApp_tokens[procs, labels, e, id, token_Alice] implies	
-			Eve -> e -> id not in knows[procs, labels]	
-*/
 	all e : Event, id : Session |
 		myApp_tokens[e, id, token_Eve] implies	
 			not myApp_sessions[e, id, Alice]
@@ -488,14 +439,6 @@ pred behavior {
 	processBehavior
 }
 
-/*
-pred goodMapping[m : Label -> Label] {
-	all procs : Event -> Proc, labels : Event -> Label |
-		(applyMapping[m, procs, labels] and behavior[procs, labels]) implies
-			oauthProperty[procs, labels]
-}
-*/
-
 pred scenario1 {
 	some e : Event, id : Session |  
 		myApp_tokens[e, id, token_Alice] 
@@ -511,414 +454,25 @@ pred scenario3 {
 		EvilServer in r.receiver
 }
 
-pred test {}
-
-
-pred mappingLiveness1 {
+// Predicates encoding reachablity property
+pred mappingReachability1 {
 	userConstraint
 	mappingConstraints
 	behavior
 	scenario1
-//	scenario2
-//	scenario3
 }
 
-pred mappingLiveness2 {
+pred mappingReachability2 {
 	userConstraint
 	mappingConstraints
 	behavior
-//	scenario1
 	scenario2
-//	scenario3
 }
 
+// Predicate encoding safety property
 pred mappingSafety {
 	userConstraint
 	mappingConstraints
 	behavior
 	not oauthProperty
 }
-
-abstract sig NONCE extends Data {}
-
-/*
-run checkTest {
-	userConstraint
-	testMapping2
-	behavior
-	not oauthProperty
-//	not oauthProperty2
-//	scenario1
-//	scenario2
-} for 4 but 8 Event//, 7 Step
-
-pred mappingConstraints {}
-
-one sig NONCE2, NONCE3 extends NONCE {}
-
-pred testMapping1 {
-// mapping from getAccessToken to port_auth_server
-  all a : getAccessToken | let b = a { b in port_auth_server
-    b.resp_resource.content = a.token
-    b.url_query = a.code
-    no b.resp_set_cookie
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_GOOGLE
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.body
-    no b.resp_redirectTo_query2
-    b.url_path = path_getAccessToken
-    no b.url_query2
-  }
-  // mapping from forward to port_client
-  all a : forward | let b = a { b in port_client
-    no b.resp_resource.content
-    b.cookie = a.session
-    b.url_query = a.code
-    no b.resp_set_cookie
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_MYAPP
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.resp_redirectTo_query2
-    b.url_path = path_forward
-    no b.url_query2
-  }
-  // mapping from Authorize to port_auth_server
-  all a : authorize | let b = a { b in port_auth_server
-    no b.resp_resource.content
-    no b.cookie
-    b.url_query = a.userid
-    no b.resp_set_cookie
-    b.resp_code = REDIRECT
-    b.resp_redirectTo_query = a.code
-    b.url_origin = ORIGIN_GOOGLE
-    b.resp_redirectTo_origin = ORIGIN_MYAPP
-    b.resp_redirectTo_path = path_forward
-    b.body = a.cred
-    no b.resp_redirectTo_query2
-    b.url_path = path_authorize
-    no b.url_query2
-  }
-  // mapping from initiate to port_client
-  all a : initiate | let b = a { b in port_client
-    no b.resp_resource.content
-    no b.cookie
-    no b.url_query
-    b.resp_set_cookie = a.session
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_MYAPP
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.body
-    no b.resp_redirectTo_query2
-    b.url_path = path_initiate
-    no b.url_query2
-  }
-}
-
-pred testMapping2 {
-// mapping from getAccessToken to port_auth_server
-  all a : getAccessToken | let b = a { b in port_auth_server
-    b.resp_resource.content = a.token
-    b.url_query = a.code
-    no b.resp_set_cookie
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_GOOGLE
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.body
-    no b.resp_redirectTo_query2
-    b.url_path = path_getAccessToken
-    no b.url_query2
-  }
-  // mapping from forward to port_client
-  all a : forward | let b = a { b in port_client
-    no b.resp_resource.content
-    b.cookie = a.session
-    b.url_query = a.code
-    no b.resp_set_cookie
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_MYAPP
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.resp_redirectTo_query2
-    b.url_path = path_forward
-    (b.cookie = session_X) implies b.url_query2 = NONCE2
-    (b.cookie = session_Y) implies b.url_query2 = NONCE3
-  }
-  // mapping from Authorize to port_auth_server
-  all a : authorize | let b = a { b in port_auth_server
-    no b.resp_resource.content
-    no b.cookie
-    b.url_query = a.userid
- //   some b.url_query2
-    no b.resp_set_cookie
-    b.resp_code = REDIRECT
-    b.resp_redirectTo_query = a.code
-    b.url_origin = ORIGIN_GOOGLE
-    b.resp_redirectTo_origin = ORIGIN_MYAPP
-    b.resp_redirectTo_path = path_forward
-    b.body = a.cred
-    b.url_path = path_authorize
-    b.resp_redirectTo_query2 = b.url_query2
-   //(b.url_query = id_Alice) implies b.resp_redirectTo_query2 =NONCE2
-   //(b.url_query = id_Eve) implies b.resp_redirectTo_query2 =NONCE3
-  }
-  // mapping from initiate to port_client
-  all a : initiate | let b = a { b in port_client
-    (b.resp_set_cookie = session_X) implies b.resp_resource.content = NONCE2
-    (b.resp_set_cookie = session_Y) implies b.resp_resource.content = NONCE3    
-    no b.cookie
-    no b.url_query
-    b.resp_set_cookie = a.session
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_MYAPP
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.body
-    no b.resp_redirectTo_query2
-    b.url_path = path_initiate
-    no b.url_query2
-  }
-}
-
-pred testMapping2backup {
-// mapping from getAccessToken to port_auth_server
-  all a : getAccessToken | let b = a { b in port_auth_server
-    b.resp_resource.content = a.token
-    b.url_query = a.code
-    no b.resp_set_cookie
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_GOOGLE
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.body
-    no b.resp_redirectTo_query2
-    b.url_path = path_getAccessToken
-    no b.url_query2
-  }
-  // mapping from forward to port_client
-  all a : forward | let b = a { b in port_client
-    no b.resp_resource.content
-    b.cookie = a.session
-    b.url_query = a.code
-    no b.resp_set_cookie
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_MYAPP
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.resp_redirectTo_query2
-    b.url_path = path_forward
-    (b.cookie = session_X) implies b.url_query2 = NONCE2
-    (b.cookie = session_Y) implies b.url_query2 = NONCE3
-  }
-  // mapping from authorize to port_auth_server
-  all a : authorize | let b = a { b in port_auth_server
-    no b.resp_resource.content
-    no b.cookie
-    b.url_query = a.userid
-    some 
-	b.url_query2
-    no b.resp_set_cookie
-    b.resp_code = REDIRECT
-    b.resp_redirectTo_query = a.code
-    b.url_origin = ORIGIN_GOOGLE
-    b.resp_redirectTo_origin = ORIGIN_MYAPP
-    b.resp_redirectTo_path = path_forward
-    b.body = a.cred
-    b.url_path = path_authorize
-    b.resp_redirectTo_query2 
-	= b.url_query2
-  }
-  // mapping from initiate to port_client
-  all a : initiate | let b = a { b in port_client
-    (b.resp_set_cookie = session_X) implies b.resp_resource.content = NONCE2
-    (b.resp_set_cookie = session_Y) implies b.resp_resource.content = NONCE3    
-    no b.cookie
-    no b.url_query
-    b.resp_set_cookie = a.session
-    b.resp_code = OK
-    no b.resp_redirectTo_query
-    b.url_origin = ORIGIN_MYAPP
-    no b.resp_redirectTo_origin
-    no b.resp_redirectTo_path
-    no b.body
-    no b.resp_redirectTo_query2
-    b.url_path = path_initiate
-    no b.url_query2
-  }
-}
-*/
-run {
-	userConstraint
-	behavior
-	scenario1
-} for 4 but 6 Event
-
-run { 
-	userConstraint
-	behavior
-	some e : Event, id : Session |  
-		myApp_tokens[e, id, token_Alice] 
-		and Alice -> id -> e in knows
-/*
-	let e0 = first, e1 = first.next, e2 = e1.next {//, e3 = e2.next, e4 = e3.next {
-		e0 in initiate & HTTPReq
-		Alice in e0.sender	
-		MyApp in e0.receiver
-		e1 in authorize
-		Alice in e1.sender
-		Google in e1.receiver
-		Alice -> (e1.rets & AuthCode) -> e2 in knows
-		Alice -> (e0.rets & Session) -> e2 in knows
-		e2 in ForwardToMyApp
-	}
-*/
-	
-//		not oauthProperty[procs, labels]
-/*
-		let e = first, e0 = first.next, e1 = e0.next, e2 = e1.next, e3 = e2.next, e4 = e3.next, 
-			aliceInit = e.labels & initiate, 
-			eveInit = e0.labels & initiate, eveAuth = e1.labels & authorize, aliceVisit = e2.labels & HTTPReq, 
-			aliceForward = e3.labels & ForwardToMyApp, getToken = e4.labels & getAccessToken {
-				// Step 0
-				some aliceInit
-				Alice + MyApp in e.procs
-				// Step 1
-				some eveInit
-				Eve + MyApp in e0.procs 
-				// Step 2
-				some eveAuth
-				Eve + Google in e1.procs
-				code_Eve in eveAuth.rets			
-				// Step 3
-				some aliceVisit
-				e2.procs = AliceBrowser + EvilServer
-				code_Eve in aliceVisit.rets
-				// Step 4
-				some aliceForward				
-				Alice + MyApp in e3.procs
-				code_Eve = aliceForward.code
-				// Step 5
-				some getToken
-				MyApp + Google in e4.procs
-		}
-*/
-
-/*
-		let e0 = first, e1 = e0.next, e2 = e1.next, e3 = e2.next,
-			aliceInit = e0.labels & initiate, aliceAuth = e1.labels & authorize,  
-			aliceForward = e2.labels & ForwardToMyApp, getToken = e3.labels & getAccessToken {
-				// Step 1
-				some aliceInit
-				Alice + MyApp in e0.procs 
-				// Step 2
-
-				some aliceAuth
-				Alice + Google in e1.procs
-				code_Alice in aliceAuth.rets 
-				some (aliceAuth.m).redirectTo
-				//(aliceInit.m).responseHeaders & Hash in (aliceAuth.m).redirectTo.query
-				// Step 3
-				some aliceForward
-				Alice + MyApp in e2.procs
-				code_Alice = aliceForward.code
-				// Step 4
-				some getToken
-				MyApp + Google in e3.procs
-		}
-*/
-
-} for 5 
-
-run attack { 
-	userConstraint
-	behavior
-	not oauthProperty
-
-/*
-lone OtherOp
-		let e = first, e0 = first.next, e1 = e0.next, e2 = e1.next, e3 = e2.next, e4 = e3.next, 
-			aliceInit = e &  initiate, 
-			eveInit = e0 & initiate, eveAuth = e1 & authorize, aliceVisit = e2 & HTTPReq, 
-			aliceForward = e3 & ForwardToMyApp, getToken = e4 & getAccessToken {
-				// Step 0
-				some aliceInit
-				Alice + MyApp in e.procs
-				// Step 1
-				some eveInit
-				Eve + MyApp in e0.procs 
-				// Step 2
-				some eveAuth
-				Eve + Google in e1.procs
-				code_Eve in eveAuth.rets			
-				// Step 3
-				some aliceVisit
-				Alice + AliceBrowser + Eve + EvilServer = e2.procs
-				aliceVisit.resp_redirectTo_origin = ORIGIN_MYAPP
-				aliceVisit.resp_redirectTo_path = path_forward
-				code_Eve in aliceVisit.rets
-
-				// Step 4
-				some aliceForward		
-				Alice + MyApp in e3.procs
-				Alice -> code_Eve -> e3 in knows
-				code_Eve = aliceForward.code
-				// Step 5
-				some getToken
-				MyApp + Google in e4.procs
-
-		}
-*/
-/*
-		let e0 = first, e1 = e0.next, e2 = e1.next, e3 = e2.next,
-			aliceInit = e0.labels & initiate, aliceAuth = e1.labels & authorize,  
-			aliceForward = e2.labels & ForwardToMyApp, getToken = e3.labels & getAccessToken {
-				// Step 1
-				some aliceInit
-				Alice + MyApp in e0.procs 
-				// Step 2
-				some aliceAuth
-				Alice + Google in e1.procs
-				code_Alice in aliceAuth.rets 
-				some (aliceAuth.m).redirectTo
-//				(aliceInit.m).responseHeaders & Hash in (aliceAuth.m).redirectTo.query
-				// Step 3
-				some aliceForward
-				Alice + MyApp in e2.procs
-				code_Alice = aliceForward.code
-				// Step 4
-				some getToken
-				MyApp + Google in e3.procs
-		}
-*/
-
-} for 6//5 but 7 Event
-
-/*
-fun to : Proc -> Proc -> Step {
-	{p1, p2 : Proc, s : Step |
-		p1 in s.e.sender and
-		p2 in s.e.receiver and
-		(p1 + p2 in OAuthModules or p1 + p2 in (Server + Browser)) }
-}	
-
-fun learns : Proc -> Data -> Step {
-	{ p : Proc, d : Data, s : Step |
-		let evt = s.e {
-			(p in evt.sender and d in evt.rets) or
-			(p in evt.receiver and d in evt.args)
-		} 
-	}
-}
-*/

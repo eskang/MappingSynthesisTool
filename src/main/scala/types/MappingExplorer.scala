@@ -134,7 +134,7 @@ class MappingExplorer(val mapping : Mapping) {
     Logger.log("=== Attempting to generalize invalid mapping constraint..", Logger.VERBOSE)
     
     val mappingPP = (mapping.map { case (impl, m) =>
-      (impl.abs.name + " to " + impl.conc.name + "\n") +  
+      (impl.abs.name + " is mapped to " + impl.conc.name + " as follows:\n") +  
       //pp(m)
       m + "\n"
     } mkString)    
@@ -234,7 +234,7 @@ class MappingExplorer(val mapping : Mapping) {
             "redirectTo." -> "redirectTo_", "url." -> "url_"))
     var result = NOT_VERIFIED
     val mappingPP = currMapping.map { case (impl, m) =>
-      (impl.abs.name + " to " + impl.conc.name + "\n") +  
+      (impl.abs.name + " is mapped to " + impl.conc.name + " as follows:\n") +  
       pp(m)      
     } mkString
     
@@ -290,7 +290,7 @@ class MappingExplorer(val mapping : Mapping) {
     var result = NOT_VERIFIED
     
     val mappingPP = currMapping.map { case (impl, m) =>
-      (impl.abs.name + " to " + impl.conc.name + "\n") +  
+      (impl.abs.name + " is mapped to " + impl.conc.name + " as follows:\n") +  
       pp(m)
     } mkString    
         
@@ -346,7 +346,7 @@ class MappingExplorer(val mapping : Mapping) {
     Logger.log("=== Attempting to generalize valid mapping constraint..", Logger.VERBOSE)
     
     val mappingPP = (mapping.map { case (impl, m) =>
-      (impl.abs.name + " to " + impl.conc.name + "\n") +  
+      (impl.abs.name + " is mapped to " + impl.conc.name + " as follows:\n") +  
       pp(m)
     } mkString)    
     //Logger.log(mappingPP, Logger.VERBOSE)

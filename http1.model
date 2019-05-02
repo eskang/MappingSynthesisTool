@@ -1,3 +1,10 @@
+/**
+ * http1.model
+ *
+ * Datatype and label definitions for the HTTP platform model
+ * Used for synthesis of mappings from OAuth 1.0 protocol
+ */
+
 val AUTH_SERVER_ID = 0
 val CLIENT_SERVER_ID = 1
 val ATTACKER_SERVER_ID = 2

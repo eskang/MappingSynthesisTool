@@ -1,5 +1,11 @@
+/**
+ * OAuth1.mapping
+ * 
+ * Partial mapping specification from OAuth 1.0 to HTTP labels
+ */
 
-// abstract and concrete labels
+// Abstract and concrete labels
+// defined in oauth1.model and http1.model
 val authorize = Store.l("authorize")
 val getAccessToken = Store.l("getAccessToken")
 val getRequestToken = Store.l("getRequestToken")
@@ -13,13 +19,14 @@ val clientPort = Store.l("port_client")
 
 // Abstract-concrete label pairs,
 // each along with user-defined constraints
+
+// Partial mapping constraint from "authorize" to "authServerPort"
 val a2h = new ImplConstraints(authorize, authServerPort)
 a2h.addEqualConstraints(
   Map(
     "req.url.path" -> "path_authorize",
     "req.url.origin" -> "ORIGIN_GOOGLE",
     "req.url.query" -> "userid",
-    //"req.url.query2" -> "reqToken",
     "req.cookie" -> "none",
     "req.body" -> "cred",
     "resp.set_cookie" -> "none",
@@ -55,8 +62,6 @@ gr2h.addEqualConstraints(
     "req.url.query" -> "none",
     "req.url.query2" -> "none",
     "req.body" -> "none",
-    //"resp.resource.content" -> "reqToken",
-    //"resp.set_cookie" -> "none",
     "resp.redirectTo.path" -> "none",
     "resp.redirectTo.origin" -> "none",
     "resp.redirectTo.query" -> "none",
@@ -100,8 +105,6 @@ az2h.addEqualConstraints(
   Map(
     "req.url.path" -> "path_authorized",
     "req.url.origin" -> "ORIGIN_MYAPP",
-    // "req.url.query" -> "none",
-    // "req.url.query2" -> "none",
     "req.cookie" -> "session",
     "req.body" -> "none",
     "resp.resource.content" -> "none",
@@ -111,7 +114,6 @@ az2h.addEqualConstraints(
     "resp.redirectTo.query2" -> "none",
     "resp.set_cookie" -> "none",
     "resp.code" -> "OK"))
-
+  
+// Finally, construct the partial mapping
 MappingFactory.mkMapping(Set(a2h, ga2h, gr2h, i2h, az2h, r2h))
-
- 

@@ -1,4 +1,11 @@
-// abstract and concrete labels
+/**
+ * OAuth2.mapping
+ * 
+ * Partial mapping specification from OAuth 2.0 to HTTP labels
+ */
+
+// Abstract and concrete labels
+// defined in oauth2.model and http2.model
 val authorize = Store.l("authorize")
 val forward = Store.l("forward")
 val initiate = Store.l("initiate")
@@ -8,8 +15,9 @@ val clientPort = Store.l("port_client")
 
 // Abstract-concrete label pairs,
 // each along with user-defined constraints
-val i2h = new ImplConstraints(initiate, clientPort)
 
+// Partial mapping constraint from "initial" to "clientPort"
+val i2h = new ImplConstraints(initiate, clientPort)
 i2h.addEqualConstraints(
   Map(
     "req.url.path" -> "path_initiate",
@@ -22,7 +30,6 @@ i2h.addEqualConstraints(
     "resp.redirectTo.origin" -> "none",
     "resp.redirectTo.query" -> "none",
     "resp.redirectTo.query2" -> "none",
-    //"resp.resource.content" -> "$COND_FUNC(resp.set_cookie,session)",
     "resp.set_cookie" -> "session",
     "resp.code" -> "OK"))
 
@@ -31,13 +38,10 @@ a2h.addEqualConstraints(
   Map(
     "req.url.path" -> "path_authorize",
     "req.url.query" -> "userid",
-    //"req.url.query2" -> "some",
     "req.url.origin" -> "ORIGIN_GOOGLE",
     "resp.code" -> "REDIRECT",
     "resp.set_cookie" -> "none",
     "req.cookie" -> "none",
-    //"req.body" -> "cred",
-    //"resp.resource.content" -> "none",
     "resp.redirectTo.path" -> "path_forward",
     "resp.redirectTo.origin" -> "ORIGIN_MYAPP",
     "resp.redirectTo.query" -> "code"))
@@ -55,7 +59,6 @@ f2h.addEqualConstraints(
     "resp.redirectTo.query" -> "none",
     "resp.redirectTo.query2" -> "none",
     "resp.resource.content" -> "none",
-    //"req.url.query2" -> "$COND_FUNC(req.cookie,session)",
     "resp.set_cookie" -> "none"))
 
 val g2h = new ImplConstraints(getAccessToken, authServerPort)
@@ -74,5 +77,6 @@ g2h.addEqualConstraints(
     "resp.redirectTo.origin" -> "none",
     "resp.redirectTo.query" -> "none",
     "resp.redirectTo.query2" -> "none"))
+
+// Finally, construct the partial mapping
 MappingFactory.mkMapping(Set(a2h, i2h, f2h, g2h))
- 

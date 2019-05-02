@@ -35,7 +35,13 @@ class AlloyWriter(modelDir: String, outputDir: String, templateFile: String, out
     val i = 0;
     Store.resetSpecialVals
     val body =   
-      line("// Synthesized mapping constraints", i) +
+      line("") +
+      line("") +
+      line("/**") +
+      line("  *") +
+      line("  * SYNTHESIZED MAPPING CONSTRAINTS", i) +
+      line("  *") +
+      line("  */") +
       line("pred mappingConstraints {", i) + 
        (ms.map(f =>            
         writeAbsToConcMap(i+1, f._1, f._2, rewrite)) mkString) +  

@@ -1,8 +1,17 @@
+/**
+ * OAuth1.model
+ *
+ * Datatype and label definitions for the OAuth 1 protocol model
+ */
+
+// Constants
 val OAUTH_ID_GOOGLE = 0
 val OAUTH_ID_MYAPP = 1
 val OAUTH_ID_ALICE = 2
 val OAUTH_ID_EVE = 3
 
+// Datatype declarations
+// e.g., "OAuthID" is declared to be a datatype in the protocol model
 val mtype = Store.d("mtype").asInstanceOf[BasicDatatype];
 val oauthID = Store.mkBasicDatatype("OAuthID", mtype);
 val reqToken = Store.mkBasicDatatype("ReqToken", mtype);
@@ -10,13 +19,17 @@ val accessToken = Store.mkBasicDatatype("AccessToken", mtype);
 val oauthSession = Store.mkBasicDatatype("OAuthSession", mtype);
 val oauthCred = Store.mkBasicDatatype("OAuthCred", mtype);
 
+// Value declarations
+// e.g., "idAlice" is declared to be a value of type OAuthID
 List("idAlice", "idEve").foreach { v => Store.mkValue(v, oauthID) }
 List("requestTokenA", "requestTokenB").foreach { v => Store.mkValue(v, reqToken) }
 List("accessTokenAlice", "accessTokenEve").foreach { v => Store.mkValue(v, accessToken) }
 List("credAlice", "credEve").foreach { v => Store.mkValue(v, oauthCred) }
 List("sessionX", "sessionY").foreach { v => Store.mkValue(v, oauthSession) }
 
-// OAuth labels (i.e., ports)
+// Label declarations
+// e.g., "getAccessToken" is a label with parameters "reqToken" and "accessToken",
+// the latter being a return parameter.
 val authorize = Store.mkLabel(
   "authorize",
   Map("userid" -> oauthID, "cred" -> oauthCred, "reqToken" -> reqToken), Set[String](), OAUTH_ID_GOOGLE);
